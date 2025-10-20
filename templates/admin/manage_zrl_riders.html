@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Gestione Rider ZRL{% endblock %}
+{% block content %}
+
+<div class="container mt-4">
+
+  <h2 class="mb-3 text-center">Gestione Rider ZRL</h2>
+
+  <!-- 🔍 Filtri -->
+  <form method="GET" class="row g-3 mb-3">
+    <div class="col-md-3">
+      <label class="form-label">Categoria</label>
+      <select name="category" class="form-select">
+        <option value="">Tutte</option>
+        <option value="A" {% if selected_category == 'A' %}selected{% endif %}>A / A+</option>
+        <option value="B" {% if selected_category == 'B' %}selected{% endif %}>B</option>
+        <option value="C" {% if selected_category == 'C' %}selected{% endif %}>C</option>
+        <option value="D" {% if selected_category == 'D' %}selected{% endif %}>D</option>
+        <option value="NESSUNA" {% if selected_category == 'NESSUNA' %}selected{% endif %}>Nessuna</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Team</label>
+      <select name="team_id" class="form-select">
+        <option value="">Tutti</option>
+        {% for team in teams %}
+          <option value="{{ team.id }}" {% if selected_team == team.id|string %}selected{% endif %}>
+            {{ team.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Stato</label>
+      <select name="active_filter" class="form-select">
+        <option value="" {% if active_filter == '' %}selected{% endif %}>Tutti</option>
+        <option value="1" {% if active_filter == '1' %}selected{% endif %}>Attivi</option>
+        <option value="0" {% if active_filter == '0' %}selected{% endif %}>Inattivi</option>
+      </select>
+    </div>
+    <div class="col-md-3 d-flex align-items-end">
+      <button type="submit" class="btn btn-primary w-100">Filtra</button>
+    </div>
+  </form>
+
+  <!-- 🧭 Tabella rider -->
+  <form method="POST">
+    <div style="max-height: 500px; overflow-y: auto;">
+      <table class="table table-sm table-hover table-bordered align-middle">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 30px;"><input type="checkbox" id="select_all"></th>
+            <th>Nome</th>
+            <th>Categoria</th>
+            <th>Team</th>
+            <th>FTP</th>
+            <th>Età</th>
+            <th>Stato</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rider in zrl_riders %}
+          <tr>
+            <td><input type="checkbox" name="rider_ids" value="{{ rider['zwift_power_id'] }}"></td>
+            <td>
+              <input type="text" name="name_{{ rider['zwift_power_id'] }}" value="{{ rider['name'] }}" class="form-control form-control-sm">
+            </td>
+            <td>{{ rider['category'] or '-' }}</td>
+            <td>{{ rider['team_name'] or '-' }}</td>
+            <td>{{ rider['ftp'] or '-' }}</td>
+            <td>{{ rider['age'] or '-' }}</td>
+            <td>
+              {% if rider['active'] %}
+                <span class="badge bg-success">Attivo</span>
+              {% else %}
+                <span class="badge bg-secondary">Inattivo</span>
+              {% endif %}
+            </td>
+            <td>
+              <button type="submit" name="save_name" value="{{ rider['zwift_power_id'] }}" class="btn btn-sm btn-outline-primary">
+                💾 Salva
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Azioni multiple -->
+    <div class="d-flex gap-2 mt-3">
+      <button type="submit" name="action" value="suspend_selected" class="btn btn-warning">🧊 Sospendi selezionati</button>
+      <button type="submit" name="action" value="remove_selected" class="btn btn-danger">🗑️ Rimuovi selezionati</button>
+    </div>
+  </form>
+
+</div>
+
+<script>
+  // Seleziona/deseleziona tutti
+  document.getElementById('select_all').addEventListener('click', function() {
+    let checkboxes = document.querySelectorAll('input[name="rider_ids"]');
+    checkboxes.forEach(cb => cb.checked = this.checked);
+  });
+</script>
+
+{% endblock %}

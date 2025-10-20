@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}📋 Report Formazioni{% endblock %}
+{% block page_title %}📋 Report Formazioni – {{ race_date }}{% endblock %}
+
+{% block content %}
+<div class="container py-3" style="max-width: 1000px;">
+
+  <!-- 🔍 Filtri -->
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-6 col-md-4">
+      <select name="team_id" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">Tutti i team</option>
+        {% for team in all_teams %}
+          <option value="{{ team.id }}" {% if team.id|string == request.args.get('team_id') %}selected{% endif %}>{{ team.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-4">
+      <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">Tutte le categorie</option>
+        {% for cat in all_categories %}
+          <option value="{{ cat }}" {% if cat == request.args.get('category') %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+
+  <!-- 📊 Report -->
+  {% if report %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+      {% for team in report %}
+        {% if team.selected_riders %}
+          {% set first_category = team.selected_riders[0].category %}
+          {% set header_class = category_colors.get(first_category, 'bg-light text-dark') %}
+          <div class="col">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header {{ header_class }} py-2 px-3 d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">{{ team.team_name }}</span>
+                <button class="btn btn-sm btn-outline-dark" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapse{{ loop.index }}" aria-expanded="false"
+                        aria-controls="collapse{{ loop.index }}">
+                  {{ team.selected_riders|length }} rider ▼
+                </button>
+              </div>
+              <div class="collapse" id="collapse{{ loop.index }}">
+                <div class="card-body py-2 px-3">
+                  <ul class="list-unstyled mb-0">
+                    {% for rider in team.selected_riders %}
+                      <li class="d-flex justify-content-between align-items-center small py-1 border-bottom">
+                        <span>{{ rider.name }}{% if rider.is_captain %} 👑{% endif %}</span>
+                        <span class="badge {{ category_colors.get(rider.category, 'bg-secondary') }}">{{ rider.category }}</span>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted text-center mt-4">Nessuna formazione disponibile per la prossima gara.</p>
+  {% endif %}
+
+</div>
+{% endblock %}

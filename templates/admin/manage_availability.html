@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Disponibilità Rider ZRL{% endblock %}
+{% block page_title %}Gestione Disponibilità Rider{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">🚴‍♂️ Disponibilità Rider per ZRL</div>
+    <div class="card-body">
+      <!-- Filtri -->
+      <form method="GET" action="{{ url_for('admin_races.manage_captains') }}" class="row g-3 mb-3">
+
+          <label for="category" class="form-label">Categoria:</label>
+          <select name="category" id="category" class="form-select">
+            <option value="">Tutte</option>
+            <option value="A" {% if category == 'A' %}selected{% endif %}>A</option>
+            <option value="B" {% if category == 'B' %}selected{% endif %}>B</option>
+            <option value="C" {% if category == 'C' %}selected{% endif %}>C</option>
+            <option value="D" {% if category == 'D' %}selected{% endif %}>D</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label for="order_by" class="form-label">Ordina per:</label>
+          <select name="order_by" id="order_by" class="form-select">
+            <option value="name" {% if order_by == 'name' %}selected{% endif %}>Nome</option>
+            <option value="category" {% if order_by == 'category' %}selected{% endif %}>Categoria</option>
+            <option value="ranking" {% if order_by == 'ranking' %}selected{% endif %}>Ranking</option>
+          </select>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <button type="submit" class="btn btn-outline-secondary w-100">🔍 Applica Filtri</button>
+        </div>
+      </form>
+
+      <!-- Tabella rider -->
+      <form method="POST" action="{{ url_for('admin_races.manage_captains') }}">
+        <table class="table table-bordered table-sm align-middle">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 40%">Nome</th>
+              <th style="width: 15%">Cat.</th>
+              <th style="width: 12%">Rank</th>
+              <th style="width: 8%">ZRL</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for rider in riders %}
+            <tr class="{% if rider.available_zrl %}table-info{% endif %}">
+              <td title="{{ rider.name }}">{{ rider.name }}</td>
+              <td class="text-center">{{ rider.category }}</td>
+              <td class="text-center">{{ rider.ranking }}</td>
+              <td class="text-center">
+                <input type="checkbox" name="rider_{{ rider.zwift_power_id }}" {% if rider.available_zrl %}checked{% endif %}>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="text-end mt-3">
+          <button type="submit" class="btn btn-success">💾 Salva Disponibilità</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

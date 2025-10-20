@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Visualizza Gare ZRL{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center text-primary mb-4">📅 Calendario Gare ZRL</h2>
+
+  {% if races %}
+  <div class="d-flex justify-content-center">
+    <div class="table-responsive" style="max-width: 900px; width: 100%;">
+      <table class="table table-bordered table-hover table-striped align-middle shadow-sm">
+        <thead class="table-dark">
+          <tr>
+            <th scope="col">Nome</th>
+            <th scope="col">Data</th>
+            <th scope="col">Formato</th>
+            <th scope="col">Percorso</th>
+            <th scope="col">Distanza</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for race in races %}
+          <tr>
+            <td><strong>{{ race.name }}</strong></td>
+            <td>{{ race.race_date }}</td>
+            <td>
+              {% if race.format == "TTT" %}
+                <span class="badge bg-success">TTT</span>
+              {% elif race.format == "Points" %}
+                <span class="badge bg-warning text-dark">Points</span>
+              {% elif race.format == "Scratch" %}
+                <span class="badge bg-info text-dark">Scratch</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ race.format }}</span>
+              {% endif %}
+            </td>
+            <td>{{ race.course }}</td>
+            <td>{{ race.distance_km }} km</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-info text-center mt-4">
+    🚫 Nessuna gara disponibile al momento.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

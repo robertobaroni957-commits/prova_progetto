@@ -1,0 +1,17 @@
+<aside class="sidebar bg-light p-3 border-end" style="min-width: 250px;">
+  <h2 class="mb-4">🏁 ZRL Manager</h2>
+<p style="color:red;">TEST ADMIN SIDEBAR</p>
+  <h6 class="text-muted">📋 Dashboard Capitano</h6>
+  <a href="{{ url_for('dashboard_captain.captain_dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard_captain.captain_dashboard' %}active{% endif %}">📋 Dashboard</a>
+
+  {% if team_id and race %}
+    <a href="{{ url_for('lineup_captain.manage_lineup', team_id=team_id, race_id=race.id) }}" class="nav-link {% if request.endpoint == 'lineup_captain.manage_lineup' %}active{% endif %}">✅ Formazione</a>
+  {% endif %}
+
+  <a href="{{ url_for('admin_races.manage_captains') }}" class="nav-link {% if request.endpoint == 'admin_races.manage_captains' %}active{% endif %}">📋 Disponibilità Rider</a>
+  <a href="#" class="nav-link">📦 Esporta Dati</a>
+  <a href="#" class="nav-link">🔔 Notifiche</a>
+
+  <hr>
+  <a href="{{ url_for('auth.logout') }}" class="nav-link text-danger">🚪 Logout</a>
+</aside>

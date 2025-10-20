@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Riepilogo Importazione WTRL{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">📋 Riepilogo Importazione WTRL</h2>
+
+<div class="mb-4">
+  <h4>Stagione: {{ season.name }}</h4>
+  <p>Periodo: <strong>{{ season.start }}</strong> → <strong>{{ season.end }}</strong></p>
+</div>
+
+{% for round in rounds %}
+  <div class="card mb-4">
+    <div class="card-header bg-light">
+      <strong>{{ round.name }}</strong> ({{ round.start }} → {{ round.end }})
+    </div>
+    <div class="card-body">
+      {% set round_races = races_by_round[round.id] %}
+      {% if round_races %}
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Gara</th>
+              <th>Data</th>
+              <th>Corso</th>
+              <th>Mondo</th>
+              <th>Distanza</th>
+              <th>Dislivello</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for race in round_races %}
+              <tr>
+                <td>{{ race.name }}</td>
+                <td>{{ race.race_date }}</td>
+                <td>{{ race.course }}</td>
+                <td>{{ race.world }}</td>
+                <td>{{ race.distance_km }} km</td>
+                <td>{{ race.elevation_m }} m</td>
+                <td>
+                  <a href="{{ url_for('races.edit_race', race_id=race.id) }}" class="btn btn-sm btn-outline-secondary">
+                    ✏️ Modifica
+                  </a>
+                  <form action="{{ url_for('races.delete_race', race_id=race.id) }}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Sei sicuro di voler eliminare questa gara?')">
+                      🗑️ Elimina
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-muted">Nessuna gara associata a questo round.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}
+
+{% endblock %}

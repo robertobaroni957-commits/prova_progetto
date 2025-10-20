@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Capitano{% endblock %}
+
+{% block content %}
+  <h3 class="mb-4">📋 Dashboard Operativa</h3>
+
+  {% if not team_assigned %}
+    <div class="alert alert-warning">
+      ⚠️ Nessun team assegnato. Contatta l'amministratore per poter operare.
+    </div>
+  {% endif %}
+
+  {% if race %}
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-success text-white">🏁 Prossima Gara</div>
+      <div class="card-body">
+        <p><strong>{{ race.name }}</strong> — {{ race_date }}</p>
+        <p class="text-muted">Gestisci la formazione selezionando i rider disponibili.</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Colonna sinistra: selettore -->
+      <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-primary text-white">👥 Rider Disponibili</div>
+          <div class="card-body">
+            <ul class="list-group">
+              {% for rider in riders %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  {{ rider.name }} <span class="text-muted">({{ rider.category }})</span>
+                  {% if rider.id not in lineup_ids %}
+                    <a href="{{ url_for('lineup_captain.add_to_lineup', rider_id=rider.id, race_id=race.id) }}"
+                       class="btn btn-sm btn-outline-success" aria-label="Aggiungi {{ rider.name }} alla formazione">Aggiungi</a>
+                  {% else %}
+                    <span class="badge bg-success">Selezionato</span>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Colonna destra: formazione -->
+      <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-info text-white">✅ Formazione Selezionata</div>
+          <div class="card-body">
+            {% if lineup_ids %}
+              <ul class="list-group">
+                {% for rider in riders %}
+                  {% if rider.id in lineup_ids %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      {{ rider.name }} <span class="text-muted">({{ rider.category }})</span>
+                      <a href="{{ url_for('lineup_captain.remove_from_lineup', rider_id=rider.id, race_id=race.id) }}"
+                         class="btn btn-sm btn-outline-danger" aria-label="Rimuovi {{ rider.name }} dalla formazione">Rimuovi</a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-muted">Nessun rider selezionato per questa gara.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="alert alert-secondary">Nessuna gara programmata al momento.</div>
+  {% endif %}
+{% endblock %}

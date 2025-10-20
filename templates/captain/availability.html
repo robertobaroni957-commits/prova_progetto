@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Disponibilità Rider{% endblock %}
+
+{% block content %}
+  <h1>{{ page_title }}</h1>
+
+  {% if race %}
+    <h2>Gara attiva: {{ race.race_date }} – {{ race.name }}</h2>
+  {% else %}
+    <p>⚠️ Nessuna gara attiva al momento.</p>
+  {% endif %}
+
+  {% if riders %}
+    <form method="post">
+      <table class="availability-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Categoria</th>
+            <th>Disponibilità</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rider in riders %}
+            <tr>
+              <td>{{ rider.name }}</td>
+              <td>{{ rider.category }}</td>
+              <td>
+                <select name="availability_{{ rider.zwift_power_id }}">
+                  <option value="available" {% if rider.availability == 'available' %}selected{% endif %}>✅ Disponibile</option>
+                  <option value="unavailable" {% if rider.availability == 'unavailable' %}selected{% endif %}>❌ Non disponibile</option>
+                  <option value="maybe" {% if rider.availability == 'maybe' %}selected{% endif %}>❓ Forse</option>
+                </select>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <button type="submit" class="btn primary">💾 Salva Disponibilità</button>
+    </form>
+  {% else %}
+    <p>⚠️ Nessun rider assegnato al team.</p>
+  {% endif %}
+{% endblock %}

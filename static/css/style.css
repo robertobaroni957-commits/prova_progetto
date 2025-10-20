@@ -1,0 +1,413 @@
+/* ============================
+   RESET
+============================ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f5f7fa;
+  color: #333;
+  min-height: 100vh;
+}
+
+/* ============================
+   SIDEBAR
+============================ */
+/* ============================
+   SIDEBAR
+============================ */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100vh;
+  padding: 30px 20px;
+  background: linear-gradient(135deg, #e0f7fa, #cfd8dc);
+  color: #0d1b2a;
+  z-index: 100;
+  overflow-y: auto; /* ✅ scroll verticale abilitato */
+}
+
+.sidebar .logo {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.nav-links h3 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #9ca3af;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nav-links a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 10px 12px;
+  font-weight: 500;
+  color: #212529;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  color: #ffffff;
+  background-color: #374151;
+}
+
+/* ============================
+   LAYOUT
+============================ */
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  margin-left: 240px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  padding: 40px;
+  flex-grow: 1;
+}
+
+.page-wrapper {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Columns & Card Layout */
+.column,
+.manage-team .column {
+  flex: 1;
+  min-width: 280px;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.column h3,
+.manage-team h3 {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: #1f2937;
+}
+
+/* Dashboard 3col layout */
+.layout-3col {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+/* ============================
+   TOPBAR
+============================ */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 15px 30px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.sub-title {
+  font-size: 1.2rem;
+  color: #555;
+}
+
+/* ============================
+   FORM ELEMENTS
+============================ */
+input[type="text"],
+input[type="number"],
+select,
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  transition: all 0.2s ease;
+}
+
+input:focus,
+select:focus {
+  border-color: #0077cc;
+  outline: none;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
+  color: #333;
+}
+
+/* Team management */
+.manage-team {
+  margin-top: 30px;
+}
+.manage-team .columns {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.manage-team .rider-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.manage-team .rider-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+/* ============================
+   BUTTONS
+============================ */
+.btn {
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn.primary {
+  background-color: #0077cc;
+  color: #fff;
+}
+.btn.primary:hover { background-color: #005fa3; }
+
+.btn.success {
+  background-color: #28a745;
+  color: #fff;
+}
+.btn.success:hover { background-color: #218838; }
+
+.btn.danger {
+  background-color: #dc2626;
+  color: #fff;
+}
+.btn.danger:hover { background-color: #b91c1c; }
+
+.btn.secondary {
+  background-color: #00aa88;
+  color: #fff;
+}
+.btn.secondary:hover { background-color: #008f72; }
+
+.btn.remove-btn,
+.icon-button {
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: #dc2626;
+}
+.btn.remove-btn:hover,
+.icon-button:hover { transform: scale(1.1); }
+
+/* ============================
+   TABLES
+============================ */
+.table-clean,
+.team-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.table-clean th,
+.table-clean td,
+.team-table th,
+.team-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  font-size: 15px;
+}
+
+.table-clean th,
+.team-table th {
+  background-color: #f3f4f6;
+  font-weight: 600;
+}
+
+.team-table input,
+.team-table select,
+.team-table button {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 4px 6px;
+}
+
+/* ============================
+   CARDS / EMBOSSED
+============================ */
+.card.embossed {
+  background: #fdfdfd;
+  border: 1px solid #dee2e6;
+  box-shadow:
+    inset 1px 1px 3px rgba(0,0,0,0.08),
+    inset -1px -1px 2px rgba(255,255,255,0.6),
+    0 1px 3px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+
+.card.embossed:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 1px 1px 3px rgba(0,0,0,0.08),
+    inset -1px -1px 2px rgba(255,255,255,0.6),
+    0 4px 8px rgba(0,0,0,0.1);
+}
+
+.card-header,
+.card-body {
+  padding: 0.5rem 0.75rem;
+}
+
+/* ============================
+   FLASH MESSAGES
+============================ */
+.flashes {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 20px;
+}
+.flashes li.success {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 10px;
+  border-radius: 6px;
+}
+.flashes li.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+/* ============================
+   HOME / LOGIN
+============================ */
+.home-fullscreen,
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 80px);
+  padding: 40px;
+}
+
+.home-card,
+.login-card {
+  background-color: #ffffff;
+  padding: 50px 60px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+}
+
+.home-title,
+.login-title {
+  font-size: 2rem;
+  margin-bottom: 15px;
+}
+
+.home-subtitle,
+.login-subtitle {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+/* ============================
+   RESPONSIVE
+============================ */
+@media (max-width: 992px) {
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+  }
+  .main-content {
+    margin-left: 0;
+  }
+  .layout-3col {
+    flex-wrap: wrap;
+  }
+  .column,
+  .manage-team .column {
+    min-width: 100%;
+  }
+  .column select {
+    width: 100%;
+  }
+}
+
+.bg-soft-red {
+  background-color: #f5c2c7; /* rosato visibile */
+  color: #000;
+}
+
+.bg-soft-green {
+  background-color: #cce5cc; /* verde chiaro */
+  color: #000;
+}
+
+.bg-soft-blue {
+  background-color: #cce5ff; /* azzurro chiaro */
+  color: #000;
+}
+
+.bg-soft-yellow {
+  background-color: #fff3b0; /* giallo pastello */
+  color: #000;
+}

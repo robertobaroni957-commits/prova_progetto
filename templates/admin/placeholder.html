@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container mt-5 text-center">
+    <h2>🚧 Funzione disattivata</h2>
+    <p>Questa sezione è stata rimossa o non è più disponibile.</p>
+    <a href="{{ url_for('admin_races.view_seasons') }}" class="btn btn-primary mt-3">
+      Torna alla gestione stagioni
+    </a>
+  </div>
+{% endblock %}

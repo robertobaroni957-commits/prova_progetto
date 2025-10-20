@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Formazione Team{% endblock %}
+{% block page_title %}Formazione per la gara del {{ race_date }} – Team {{ team_name }}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- Colonna sinistra: selezione capitano e rider -->
+  <div class="col-md-6">
+
+    <!-- Selezione Capitano -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">🧑‍✈️ Assegna Capitano</div>
+      <div class="card-body">
+        <form method="POST">
+          <input type="hidden" name="action" value="assign_captain">
+          <input type="hidden" name="team_id" value="{{ team_id }}">
+          <input type="hidden" name="race_date" value="{{ race_date }}">
+
+          <select name="captain_id" class="form-select mb-3" required>
+            <option value="">-- Seleziona capitano --</option>
+            {% for rider in riders %}
+              {% if rider.is_captain %}
+                <option value="{{ rider.zwift_power_id }}" {% if assigned_captain == rider.name %}selected{% endif %}>
+                  {{ rider.name }} ({{ rider.category }})
+                </option>
+              {% endif %}
+            {% endfor %}
+          </select>
+
+          <button type="submit" class="btn btn-success w-100">✅ Assegna Capitano</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Selezione Rider -->
+    <div class="card shadow-sm">
+      <div class="card-header bg-info text-white">🎽 Seleziona Rider</div>
+      <div class="card-body">
+        <form method="POST">
+          <input type="hidden" name="action" value="save_lineup">
+          <input type="hidden" name="team_id" value="{{ team_id }}">
+          <input type="hidden" name="race_date" value="{{ race_date }}">
+
+          <p>Puoi selezionare fino a <strong>6 rider</strong> disponibili:</p>
+          <ul class="list-group">
+            {% for rider in riders %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <label class="form-check-label">
+                  <input type="checkbox" name="riders" value="{{ rider.zwift_power_id }}"
+                         class="form-check-input me-2"
+                         {% if rider.zwift_power_id in selected_ids %}checked{% endif %}
+                         {% if rider.zwift_power_id in busy_riders and rider.zwift_power_id not in selected_ids %}disabled{% endif %}>
+                  {{ rider.name }} ({{ rider.category }})
+                  {% if rider.zwift_power_id in busy_riders and rider.zwift_power_id not in selected_ids %}
+                    <span class="text-muted">(occupato in un'altra gara)</span>
+                  {% endif %}
+                </label>
+
+                {% if rider.zwift_power_id in selected_ids %}
+                  <button type="submit" name="action" value="remove_rider"
+                          formaction="" formmethod="POST"
+                          class="btn btn-sm btn-outline-danger"
+                          onclick="this.form.remove_id.value='{{ rider.zwift_power_id }}';">
+                    ❌
+                  </button>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+
+          <input type="hidden" name="remove_id" value="">
+          <button type="submit" class="btn btn-primary mt-3 w-100">💾 Salva Formazione</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Colonna destra: riepilogo formazione salvata -->
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-light">✅ Formazione Salvata</div>
+      <div class="card-body">
+        <p><strong>Capitano:</strong>
+          {% if assigned_captain %}
+            <span class="text-success fw-semibold">👑 {{ assigned_captain }}</span>
+          {% else %}
+            <span class="text-muted">Nessuno assegnato</span>
+          {% endif %}
+        </p>
+
+        {% if selected_ids %}
+          <p><strong>Rider selezionati:</strong></p>
+          <ul class="list-group">
+            {% for rider in riders %}
+              {% if rider.zwift_power_id in selected_ids %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span>
+                    {{ rider.name }}
+                    <span class="badge {{ category_colors.get(rider.category, 'bg-secondary') }}">{{ rider.category }}</span>
+                  </span>
+                  <form method="POST" class="m-0 p-0">
+                    <input type="hidden" name="action" value="remove_rider">
+                    <input type="hidden" name="team_id" value="{{ team_id }}">
+                    <input type="hidden" name="race_date" value="{{ race_date }}">
+                    <input type="hidden" name="remove_id" value="{{ rider.zwift_power_id }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Rimuovi dalla gara">❌</button>
+                  </form>
+                </li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted">Nessun rider selezionato per questa gara.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const checkboxes = document.querySelectorAll('input[name="riders"]');
+  const maxSelection = 6;
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener("change", () => {
+      const selectedCount = Array.from(checkboxes).filter(c => c.checked).length;
+      if (selectedCount > maxSelection && cb.checked) {
+        cb.checked = false;
+        alert("Puoi selezionare al massimo 6 rider per la formazione.");
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Benvenuto{% endblock %}
+
+{% block content %}
+  {% if session.get('user_role') == 'admin' %}
+    <script>window.location.href = "{{ url_for('admin_panel.admin_dashboard') }}";</script>
+  {% elif session.get('user_role') == 'captain' %}
+    <script>window.location.href = "{{ url_for('dashboard_captain.captain_dashboard') }}";</script>
+  {% endif %}
+
+  <div class="welcome-box">
+    <h1>ZRL Manager</h1>
+    <p>Gestione semplificata di team, rider e gare per la Zwift Racing League.</p>
+
+    <div class="button-group">
+      <a href="{{ url_for('auth.login_admin') }}" class="btn" aria-label="Login come amministratore">🔐 Login Admin</a>
+      <a href="{{ url_for('auth.login_captain') }}" class="btn" aria-label="Login come capitano">🧑‍✈️ Login Capitano</a>
+    </div>
+  </div>
+{% endblock %}

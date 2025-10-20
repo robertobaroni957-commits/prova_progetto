@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Crea Utente{% endblock %}
+{% block page_title %}➕ Crea Nuovo Utente{% endblock %}
+
+{% block content %}
+<form method="POST">
+  <label>Email:</label>
+  <input type="email" name="email" required><br><br>
+
+  <label>Password:</label>
+  <input type="password" name="password" required><br><br>
+
+  <label>ZwiftPower ID:</label>
+  <input type="text" name="zwift_power_id" required><br><br>
+
+  <label>Ruolo:</label>
+  <select name="role">
+    <option value="admin">Admin</option>
+    <option value="captain">Captain</option>
+  </select><br><br>
+
+  <label>Team ID:</label>
+  <input type="number" name="team_id"><br><br>
+
+  <button type="submit">💾 Crea Utente</button>
+</form>
+{% endblock %}

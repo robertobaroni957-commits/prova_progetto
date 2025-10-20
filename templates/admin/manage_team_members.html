@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Gestione Team{% endblock %}
+{% block page_title %}Gestione membri – {{ team.name }}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- 🎯 Colonna sinistra: aggiunta rider -->
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-info text-white">➕ Aggiungi Rider</div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('admin_teams.manage_team_members', team_id=team.id) }}">
+          <input type="hidden" name="action" value="add_rider">
+          <div class="mb-3">
+            <label for="rider_id" class="form-label">Rider (categoria {{ team.category }}):</label>
+            <select name="rider_id" id="rider_id" class="form-select" required>
+  <option value="">-- Seleziona rider --</option>
+  {% for rider in category_riders %}
+    {% if rider.zwift_power_id not in assigned_rider_ids %}
+      <option value="{{ rider.zwift_power_id }}">{{ rider.name }}</option>
+    {% endif %}
+  {% endfor %}
+</select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">➕ Aggiungi Rider</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 👥 Colonna destra: capitano e membri -->
+  <div class="col-md-6">
+    <!-- Capitano -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-secondary text-white">👑 Capitano</div>
+      <div class="card-body">
+        {% if captain %}
+          <p class="mb-0">
+            <span class="badge bg-success">{{ captain.name }}</span>
+            <small class="text-muted">({{ captain.category }})</small>
+          </p>
+        {% else %}
+          <p class="text-muted"><em>Nessun capitano assegnato</em></p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Riders -->
+    <div class="card shadow-sm">
+      <div class="card-header bg-light">🚴 Riders</div>
+      <div class="card-body">
+        {% if riders %}
+          <ul class="list-group">
+            {% for rider in riders %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  {{ rider.name }} ({{ rider.category }})
+                  {% if rider.is_captain %}
+                    <span class="badge bg-warning text-dark ms-2">👑</span>
+                  {% endif %}
+                </div>
+                <form method="POST" action="{{ url_for('admin_teams.manage_team_members', team_id=team.id) }}">
+                  <input type="hidden" name="action" value="remove_rider">
+                  <input type="hidden" name="rider_id" value="{{ rider.zwift_power_id }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Rimuovi rider">🗑️</button>
+                </form>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted"><em>Nessun rider assegnato</em></p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Benvenuto{% endblock %}
+
+{% block content %}
+<style>
+  .welcome-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 1.5s ease-in-out;
+  }
+
+  .welcome-message {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #0d6efd;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<div class="welcome-container">
+  <div class="welcome-message">🚴 Benvenuto su ZRL Manager</div>
+</div>
+
+<script>
+  setTimeout(function() {
+    window.location.href = "{{ url_for('auth.login') }}";
+  }, 3000); // dopo 3 secondi vai al login
+</script>
+{% endblock %}

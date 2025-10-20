@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Gestione Formazione{% endblock %}
+{% block page_title %}Formazione – Gara {{ race_date }} – Team {{ team_name }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; margin: auto;">
+  <div class="row g-3">
+    <!-- Colonna sinistra: Lista componenti team -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white py-2">👥 Componenti Team</div>
+        <div class="card-body p-2">
+          <ul class="list-group list-group-flush">
+            {% for rider in riders %}
+            <li class="list-group-item d-flex justify-content-between align-items-center py-1">
+              <span>{{ rider.name }}{% if rider.is_captain %} 👑{% endif %}</span>
+              <span class="badge 
+                {% if rider.category == 'A' %}bg-danger
+                {% elif rider.category == 'B' %}bg-success
+                {% elif rider.category == 'C' %}bg-primary
+                {% elif rider.category == 'D' %}bg-warning text-dark
+                {% else %}bg-secondary{% endif %}">
+                {{ rider.category }}
+                {% if rider.zwift_power_id in busy_riders and rider.zwift_power_id not in selected_ids %}
+                  – Impegnato
+                {% endif %}
+              </span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonna destra: Formazione selezionata -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-info text-white py-2">🎽 Formazione Selezionata</div>
+        <div class="card-body p-2">
+          <form method="POST">
+            <input type="hidden" name="action" value="save_lineup">
+            <input type="hidden" name="team_id" value="{{ team_id }}">
+            <input type="hidden" name="race_date" value="{{ race_date }}">
+
+            <ul class="list-group list-group-flush mb-2">
+              {% for rider in riders %}
+                {% if rider.available_zrl %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center py-1">
+                    <label class="mb-0">
+                      <input type="checkbox" name="riders" value="{{ rider.zwift_power_id }}"
+                        {% if rider.zwift_power_id in selected_ids %}checked{% endif %}>
+                      {{ rider.name }}{% if rider.is_captain %} 👑{% endif %}
+                    </label>
+                    <span class="badge 
+                      {% if rider.category == 'A' %}bg-danger
+                      {% elif rider.category == 'B' %}bg-success
+                      {% elif rider.category == 'C' %}bg-primary
+                      {% elif rider.category == 'D' %}bg-warning text-dark
+                      {% else %}bg-secondary{% endif %}">
+                      {{ rider.category }}
+                      {% if rider.zwift_power_id in busy_riders and rider.zwift_power_id not in selected_ids %}
+                        – Impegnato
+                      {% endif %}
+                    </span>
+                  </li>
+                {% endif %}
+              {% endfor %}
+            </ul>
+
+            <button type="submit" class="btn btn-sm btn-primary w-100">💾 Salva Formazione</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const checkboxes = document.querySelectorAll('input[name="riders"]');
+  const maxSelection = 6;
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener("change", () => {
+      const selectedCount = Array.from(checkboxes).filter(c => c.checked).length;
+      if (selectedCount > maxSelection && cb.checked) {
+        cb.checked = false;
+        alert("Puoi selezionare al massimo 6 rider per la formazione.");
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

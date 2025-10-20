@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container" style="max-width: 900px; margin: auto;">
+  <h2 class="mb-3 text-center">Importazione rider in ZRL</h2>
+
+  <!-- Filtro categoria -->
+  <form method="get" class="d-flex gap-2 align-items-center mb-3">
+    <label for="category">Categoria:</label>
+    <select name="category" id="category" class="form-select form-select-sm" style="width: 150px;">
+      <option value="">Tutte</option>
+      <option value="A" {% if selected_category=='A' %}selected{% endif %}>A / A+</option>
+      <option value="B" {% if selected_category=='B' %}selected{% endif %}>B</option>
+      <option value="C" {% if selected_category=='C' %}selected{% endif %}>C</option>
+      <option value="D" {% if selected_category=='D' %}selected{% endif %}>D</option>
+      <option value="NESSUNA" {% if selected_category=='NESSUNA' %}selected{% endif %}>Nessuna</option>
+    </select>
+    <button type="submit" class="btn btn-sm btn-primary">Filtra</button>
+  </form>
+
+  <form method="post">
+    <div style="max-height: 500px; overflow-y: auto;">
+      <table class="table table-sm table-hover table-bordered align-middle mb-0" style="table-layout: fixed; width: 100%;">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 30px;"><input type="checkbox" id="select_all" onclick="toggleAll(this)"></th>
+            <th>Nome</th>
+            <th>Categoria</th>
+            <th>FTP</th>
+            <th>Età</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rider in zwift_riders %}
+          <tr>
+            <td><input type="checkbox" name="rider_ids" value="{{ rider['zwift_power_id'] }}"></td>
+            <td>{{ rider['name'] }}</td>
+            <td>{{ rider['category'] }}</td>
+            <td>{{ rider['ftp'] }}</td>
+            <td>{{ rider['age'] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <button type="submit" class="btn btn-sm btn-success mt-2">Importa selezionati</button>
+  </form>
+</div>
+
+<script>
+function toggleAll(source) {
+  checkboxes = document.getElementsByName('rider_ids');
+  for(var i=0, n=checkboxes.length;i<n;i++) {
+    checkboxes[i].checked = source.checked;
+  }
+}
+</script>
+
+{% endblock %}

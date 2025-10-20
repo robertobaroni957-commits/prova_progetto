@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Gestione Round WTRL{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 760px;">
+  <h4 class="mb-4">📋 Gestione Stagioni e Round WTRL</h4>
+
+  <!-- 🔹 Sezione: Nuova stagione -->
+  <fieldset class="border rounded p-3 mb-4">
+    <legend class="float-none w-auto px-2">➕ Nuova Stagione</legend>
+    <form method="POST" action="{{ url_for('admin_races.create_season') }}" class="row g-2 align-items-end">
+      <div class="col-6">
+        <label for="start_year" class="form-label mb-0">Anno Inizio</label>
+        <input type="number" name="start_year" id="start_year" class="form-control form-control-sm" min="2020" max="2099" required>
+      </div>
+      <div class="col-6">
+        <label for="end_year" class="form-label mb-0">Anno Fine</label>
+        <input type="number" name="end_year" id="end_year" class="form-control form-control-sm" min="2021" max="2100" required>
+      </div>
+      <div class="col-12 text-end">
+        <button type="submit" class="btn btn-sm btn-success">➕ Aggiungi</button>
+      </div>
+    </form>
+  </fieldset>
+
+  <!-- 🔹 Sezione: Inserimento round -->
+  <fieldset class="border rounded p-3 mb-4">
+    <legend class="float-none w-auto px-2">📅 Inserisci Round</legend>
+    <form method="POST" action="{{ url_for('admin_races.bulk_insert_rounds') }}">
+      <input type="hidden" name="rounds_json" id="rounds_json">
+
+      <div class="mb-3">
+        <label for="season_id" class="form-label">Stagione</label>
+        <select id="season_id" class="form-select form-select-sm">
+          <option value="" disabled selected>Seleziona stagione</option>
+          {% for s in seasons %}
+          <option value="{{ s.id }}">{{ s.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="row g-2 align-items-end mb-3">
+        <div class="col-4">
+          <label for="round_name" class="form-label mb-0">Nome</label>
+          <input type="text" id="round_name" class="form-control form-control-sm">
+        </div>
+        <div class="col-4">
+          <label for="start_date" class="form-label mb-0">Inizio</label>
+          <input type="date" id="start_date" class="form-control form-control-sm">
+        </div>
+        <div class="col-4">
+          <label for="end_date" class="form-label mb-0">Fine</label>
+          <input type="date" id="end_date" class="form-control form-control-sm">
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between mb-3">
+        <button type="button" class="btn btn-success btn-sm" onclick="addRound()">➕ Aggiungi</button>
+        <button type="submit" class="btn btn-primary btn-sm" id="submit_btn" disabled>📤 Registra</button>
+      </div>
+
+      <table class="table table-bordered table-sm text-center align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Stagione</th>
+            <th>Nome</th>
+            <th>Inizio</th>
+            <th>Fine</th>
+            <th>✕</th>
+          </tr>
+        </thead>
+        <tbody id="rounds_table"></tbody>
+      </table>
+    </form>
+  </fieldset>
+
+  <!-- 🔹 Sezione: Round già registrati -->
+  <fieldset class="border rounded p-3">
+    <legend class="float-none w-auto px-2">📋 Round già registrati</legend>
+    {% if existing_rounds %}
+    <table class="table table-bordered table-sm text-center align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Stagione</th>
+          <th>Nome</th>
+          <th>Inizio</th>
+          <th>Fine</th>
+          <th>Attivo</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in existing_rounds %}
+        <tr>
+          <form method="POST" action="{{ url_for('admin_imports.update_round', round_id=r.id) }}">
+            <td>{{ r.round_number }}</td>
+            <td>{{ r.season_label }}</td>
+            <td><input type="text" name="name" value="{{ r.name }}" class="form-control form-control-sm text-center"></td>
+            <td><input type="date" name="start_date" value="{{ r.start_date }}" class="form-control form-control-sm"></td>
+            <td><input type="date" name="end_date" value="{{ r.end_date }}" class="form-control form-control-sm"></td>
+            <td><input type="checkbox" name="is_active" {% if r.is_active %}checked{% endif %}></td>
+            <td class="d-flex justify-content-center gap-1">
+              <button type="submit" class="btn btn-sm btn-outline-primary">💾</button>
+          </form>
+          <form method="POST" action="{{ url_for('admin_races.delete_round', round_id=r.id) }}">
+            <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
+          </form>
+            </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">Nessun round registrato.</p>
+    {% endif %}
+  </fieldset>
+</div>
+
+<!-- 🔹 Script JS -->
+<script>
+let rounds = [];
+
+function addRound() {
+  const season_id = document.getElementById("season_id").value;
+  const name = document.getElementById("round_name").value;
+  const start = document.getElementById("start_date").value;
+  const end = document.getElementById("end_date").value;
+
+  if (!season_id || !name || !start || !end) {
+    alert("⚠️ Compila tutti i campi");
+    return;
+  }
+
+  rounds.push({ season_id, name, start_date: start, end_date: end });
+  updateTable();
+  clearForm();
+}
+
+function updateTable() {
+  const tbody = document.getElementById("rounds_table");
+  const submitBtn = document.getElementById("submit_btn");
+  tbody.innerHTML = "";
+
+  rounds.forEach((r, i) => {
+    const seasonText = document.querySelector(`#season_id option[value="${r.season_id}"]`).textContent;
+    tbody.innerHTML += `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${seasonText}</td>
+        <td>${r.name}</td>
+        <td>${r.start_date}</td>
+        <td>${r.end_date}</td>
+        <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRound(${i})">✕</button></td>
+      </tr>`;
+  });
+
+  document.getElementById("rounds_json").value = JSON.stringify(rounds);
+  submitBtn.disabled = rounds.length === 0;
+}
+
+function removeRound(index) {
+  rounds.splice(index, 1);
+  updateTable();
+}
+
+function clearForm() {
+  document.getElementById("round_name").value = "";
+  document.getElementById("start_date").value = "";
+  document.getElementById("end_date").value = "";
+}
+
+// Precompila end_year = start_year + 1
+document.getElementById("start_year").addEventListener("input", function () {
+  const start = parseInt(this.value);
+  if (!isNaN(start)) {
+    document.getElementById("end_year").value = start + 1;
+  }
+});
+</script>
+{% endblock %}

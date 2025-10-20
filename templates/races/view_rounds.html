@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Round e Gare{% endblock %}
+{% block content %}
+<h2>🏁 Round della stagione {{ season.name }}</h2>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Nome</th>
+      <th>Inizio</th>
+      <th>Fine</th>
+      <th>Gare</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for round in rounds %}
+  <tr>
+    <td>{{ round.number }}</td>
+    <td>{{ round.name }}</td>
+    <td>{{ round.start }}</td>
+    <td>{{ round.end }}</td>
+    <td>
+      <a href="{{ url_for('admin_races.view_races_by_round', round_id=round.id) }}" class="btn btn-sm btn-outline-secondary">
+        Visualizza Gare
+      </a>
+    </td>
+  </tr>
+{% endfor %}
+  </tbody>
+</table>
+
+<hr>
+<h3>📥 Importa Gare per Round</h3>
+<form method="POST" action="{{ url_for("admin_imports.import_races") }}">
+  <input type="number" name="round_id" placeholder="ID Round" required class="form-control mb-2">
+  <input type="url" name="races_url" placeholder="https://..." required class="form-control mb-2">
+  <button type="submit" class="btn btn-primary">🔄 Importa Gare</button>
+</form>
+{% endblock %}

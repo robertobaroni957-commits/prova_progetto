@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Debug Routes{% endblock %}
+{% block content %}
+  <h1>📌 Endpoint registrati</h1>
+  <ul>
+    {% for rule in rules %}
+      <li><code>{{ rule.endpoint }}</code> → <code>{{ rule.rule }}</code></li>
+    {% endfor %}
+  </ul>
+{% endblock %}

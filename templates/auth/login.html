@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+{% block page_title %}Accesso Utente{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 75vh;">
+  <div class="card shadow-lg" style="max-width: 420px; width: 100%; border-radius: 1rem;">
+    <div class="card-header text-center bg-primary text-white py-3" style="border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
+      <h4 class="mb-0">🔐 Login Gestione ZRL</h4>
+      <small>Accedi come Amministratore o Capitano</small>
+    </div>
+    <div class="card-body p-4">
+      <form method="POST" action="{{ url_for('auth.login') }}">
+        <!-- Email -->
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" name="email" id="email" class="form-control" placeholder="Inserisci la tua email" required>
+        </div>
+
+        <!-- Password -->
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" name="password" id="password" class="form-control" placeholder="Inserisci la password" required>
+        </div>
+
+        <!-- Ruolo -->
+        <div class="mb-4">
+          <label for="role" class="form-label">Ruolo</label>
+          <select name="role" id="role" class="form-select" required>
+            <option value="">-- Seleziona il ruolo --</option>
+            <option value="admin">🧑‍💼 Amministratore</option>
+            <option value="captain">🚴‍♂️ Capitano</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 fw-bold py-2">➡️ Accedi</button>
+      </form>
+
+      <div class="text-center mt-3">
+        <a href="{{ url_for('auth.forgot_password') }}" class="text-decoration-none small">Hai dimenticato la password?</a>
+      </div>
+    </div>
+
+    <div class="card-footer text-center text-muted small py-2">
+      © 2025 Gestione ZRL
+    </div>
+  </div>
+</div>
+{% endblock %}

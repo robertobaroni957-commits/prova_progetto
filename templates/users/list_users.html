@@ -1,0 +1,17 @@
+<h2>👥 Utenti registrati</h2>
+<table>
+  <tr>
+    <th>Email</th>
+    <th>Nome Rider</th>
+    <th>Ruolo</th>
+    <th>Attivo</th>
+  </tr>
+  {% for user in users %}
+  <tr>
+    <td>{{ user.email }}</td>
+    <td>{{ user.rider_name or '—' }}</td>
+    <td>{{ user.role }}</td>
+    <td>{{ '✅' if user.active else '❌' }}</td>
+  </tr>
+  {% endfor %}
+</table>

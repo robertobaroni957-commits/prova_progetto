@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  {% if round %}
+    Gare · {{ round.name }}
+  {% else %}
+    Round non trovato
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% if round %}
+    <h2>🚴‍♂️ Gare · {{ round.name }}</h2>
+<p style="color: red;">DEBUG: Sto usando il file in /races/</p>
+    {% if races %}
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Nome</th>
+            <th>Formato</th>
+            <th>Percorso</th>
+            <th>Distanza</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for race in races %}
+            <tr>
+              <td>{{ race.race_date }}</td>
+              <td>{{ race.name }}</td>
+              <td><span class="badge bg-secondary">{{ race.format }}</span></td>
+              <td>{{ race.course }}</td>
+              <td>{{ race.distance_km }} km</td>
+              <td>
+                <a href="{{ url_for('admin_races.edit_race', race_id=race.id) }}" class="btn btn-sm btn-outline-warning">✏️ Modifica</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-muted">Nessuna gara disponibile per questo round.</p>
+    {% endif %}
+  {% else %}
+    <h2 class="text-danger">⚠️ Round non trovato</h2>
+    <p><a href="{{ url_for('admin_races.view_seasons') }}" class="btn btn-outline-secondary">← Torna alle stagioni</a></p>
+  {% endif %}
+{% endblock %}

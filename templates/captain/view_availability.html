@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Disponibilità Corridori{% endblock %}
+{% block page_title %}Disponibilità Corridori{% endblock %}
+
+{% block content %}
+  {% if race %}
+    <form method="POST">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white">
+          🏁 Gara Attiva: {{ race.name }} — {{ race.race_date }}
+        </div>
+        <div class="card-body">
+          <table class="table table-bordered align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Disponibilità</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for rider in riders %}
+              <tr>
+                <td>{{ rider.name }}</td>
+                <td>{{ rider.category }}</td>
+                <td>
+                  <select name="availability_{{ rider.zwift_power_id }}" class="form-select">
+                    <option value="disponibile" {% if rider.availability == 'disponibile' %}selected{% endif %}>✅ Disponibile</option>
+                    <option value="assente" {% if rider.availability == 'assente' %}selected{% endif %}>❌ Assente</option>
+                    <option value="incerto" {% if rider.availability == 'incerto' %}selected{% endif %}>🤔 Incerto</option>
+                  </select>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer text-end">
+          <button type="submit" class="btn btn-primary">💾 Salva Disponibilità</button>
+        </div>
+      </div>
+    </form>
+  {% else %}
+    <div class="alert alert-warning">
+      ⚠️ Nessuna gara attiva al momento. Torna più tardi o contatta l’amministratore.
+    </div>
+  {% endif %}
+{% endblock %}

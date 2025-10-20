@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Gestione Squadra{% endblock %}
+{% block page_title %}Gestione Squadra{% endblock %}
+
+{% block content %}
+  {% if race %}
+    <form method="POST">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">🏁 Formazione per {{ race.name }} – {{ race.race_date }}</div>
+        <div class="card-body">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Seleziona</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for rider in riders %}
+              <tr>
+                <td>{{ rider.name }}</td>
+                <td>{{ rider.category }}</td>
+                <td>
+                  <input type="checkbox"
+       name="rider_ids"
+       value="{{ rider.zwift_power_id }}"
+       id="rider_{{ rider.zwift_power_id }}"
+       {% if rider.zwift_power_id in selected_ids %}checked{% endif %}>
+<label for="rider_{{ rider.zwift_power_id }}" class="visually-hidden">Seleziona {{ rider.name }}</label>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <button class="btn btn-success mt-3" type="submit" aria-label="Salva formazione selezionata">💾 Aggiorna Formazione</button>
+        </div>
+      </div>
+    </form>
+  {% else %}
+    <div class="alert alert-warning">⚠️ Nessuna gara attiva al momento.</div>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Amministratore{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- 🔹 Intestazione -->
+  <h1 class="mb-4 fw-bold text-primary">
+    <i class="bi bi-bar-chart-fill me-2"></i> Dashboard Amministratore
+  </h1>
+
+  <!-- 🔹 Messaggi flash -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Chiudi"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- 🔹 Round attivo -->
+  {% if current_round %}
+    <div class="alert alert-info d-flex justify-content-between align-items-center mb-4 flex-wrap">
+      <div class="me-3">
+        <i class="bi bi-calendar-event me-2"></i>
+        <strong>Round attivo:</strong> {{ current_round["name"] }}
+      </div>
+      <div class="mt-2 mt-md-0">
+        <strong>Gare:</strong>
+        {% if races %}
+          {% for race in races %}
+            <span class="badge bg-secondary me-1">{{ race.name }}</span>
+          {% endfor %}
+        {% else %}
+          <span class="text-muted">Nessuna gara associata</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 🔹 Pulsanti gara -->
+    {% if races %}
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        {% for race in races %}
+          {% set is_past = race.race_date < current_time.strftime('%Y-%m-%d') %}
+          <button class="btn btn-sm {{ 'btn-outline-secondary' if is_past else 'btn-outline-primary' }} race-button"
+                  data-bs-toggle="modal"
+                  data-bs-target="#raceModal"
+                  data-race-id="{{ race.id }}">
+            {{ race.race_date }}
+          </button>
+        {% endfor %}
+      </div>
+
+      <!-- 🔹 Modale dettagli gara -->
+      <div class="modal fade" id="raceModal" tabindex="-1" aria-labelledby="raceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="raceModalLabel">Dettagli Gara</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+            </div>
+            <div class="modal-body small">
+              <h5 id="race-name" class="mb-2 text-primary"></h5>
+              <p><strong>Formato:</strong> <span id="race-format"></span></p>
+              <p><strong>Mondo:</strong> <span id="race-world"></span></p>
+              <p><strong>Percorso:</strong> <span id="race-course"></span></p>
+              <p><strong>Giri:</strong> <span id="race-laps"></span></p>
+              <p><strong>Distanza:</strong> <span id="race-distance"></span> km</p>
+              <p><strong>Salita:</strong> <span id="race-elevation"></span> m</p>
+              <p><strong>Powerups:</strong> <span id="race-powerups"></span></p>
+              <p><strong>FAL:</strong> <span id="race-fal"></span></p>
+              <p><strong>FTS:</strong> <span id="race-fts"></span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        const races = {{ races|tojson }};
+        const modal = document.getElementById("raceModal");
+
+        modal.addEventListener("show.bs.modal", event => {
+          const button = event.relatedTarget;
+          const raceId = parseInt(button.getAttribute("data-race-id"));
+          const race = races.find(r => r.id === raceId);
+          if (race) {
+            document.getElementById("race-name").textContent = race.name;
+            document.getElementById("race-format").textContent = race.format;
+            document.getElementById("race-world").textContent = race.world;
+            document.getElementById("race-course").textContent = race.course;
+            document.getElementById("race-laps").textContent = race.laps;
+            document.getElementById("race-distance").textContent = race.distance_km.toFixed(1);
+            document.getElementById("race-elevation").textContent = race.elevation_m.toFixed(0);
+            document.getElementById("race-powerups").textContent = race.powerups;
+            document.getElementById("race-fal").textContent = race.fal_segments;
+            document.getElementById("race-fts").textContent = race.fts_segments;
+          }
+        });
+      </script>
+    {% endif %}
+  {% endif %}
+
+  <!-- 🔹 Card Squadre -->
+  <hr class="my-4">
+  <h2 class="mb-3">Squadre</h2>
+  <div class="row g-3">
+    {% for team in teams %}
+      <div class="col-6 col-md-4 col-lg-2">
+        {% if team.empty %}
+          <div class="card border-0 bg-light" style="height: 100px;"></div>
+        {% else %}
+          {% set color = {
+            'A': '#dc3545', 'B': '#198754', 'C': '#0dcaf0', 'D': '#ffc107'
+          }[team.category] if team.category in ['A','B','C','D'] else '#adb5bd' %}
+
+          {% if race_date %}
+            <a href="{{ url_for('admin_lineup.manage_riders', team_id=team.id, race_date=race_date) }}"
+               class="text-decoration-none text-dark">
+          {% else %}
+            <a href="#" class="text-decoration-none text-muted" title="Nessuna gara disponibile">
+          {% endif %}
+              <div class="card shadow-sm team-card small hover-shadow position-relative"
+                   style="border-left: 4px solid {{ color }}; cursor: pointer;">
+                {% if team.has_lineup %}
+                  <span class="position-absolute top-0 end-0 badge rounded-pill bg-success m-1">✔</span>
+                {% endif %}
+                <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center">
+                  <strong class="text-truncate" style="max-width: 70%;">{{ team.name or '—' }}</strong>
+                  <span class="badge bg-primary">🚴 {{ team.rider_count or 0 }}</span>
+                </div>
+                <div class="card-body py-1 px-2">
+                  <p class="mb-1"><strong>Cat:</strong> {{ team.category or '—' }}</p>
+                  <p class="mb-1"><strong>Div:</strong> {{ team.division or '—' }}</p>
+                  <p class="mb-0"><strong>Cap:</strong>
+                    {% if team.captain_name %}
+                      <span class="text-success">{{ team.captain_name }}</span>
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </p>
+                </div>
+              </div>
+            </a>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
