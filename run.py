@@ -1,3 +1,13 @@
+# all'inizio di run.py
+app = create_app()
+
+if __name__ == "__main__":
+    import threading, webbrowser
+    threading.Timer(1.0, lambda: webbrowser.open_new("http://localhost:5000/")).start()
+    app.run(debug=True)
+
+
+
 import threading
 import webbrowser
 from flask import Flask, redirect, render_template
