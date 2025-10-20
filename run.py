@@ -1,13 +1,3 @@
-# all'inizio di run.py
-app = create_app()
-
-if __name__ == "__main__":
-    import threading, webbrowser
-    threading.Timer(1.0, lambda: webbrowser.open_new("http://localhost:5000/")).start()
-    app.run(debug=True)
-
-
-
 import threading
 import webbrowser
 from flask import Flask, redirect, render_template
@@ -29,6 +19,7 @@ from routes.seasons import seasons_bp
 # Blueprint admin modulari (centralizzati)
 from blueprints.admin.routes import all_blueprints as admin_blueprints
 
+
 def create_app():
     app = Flask(__name__, static_folder="static", template_folder="templates")
     app.secret_key = "supersegreto"
@@ -40,7 +31,6 @@ def create_app():
     app.register_blueprint(main_bp)
     app.register_blueprint(scrape_bp)
     app.register_blueprint(debug_bp)
-    
 
     # 🔧 Blueprint admin modulari
     for bp in admin_blueprints:
@@ -66,10 +56,14 @@ def create_app():
 
     return app
 
-def open_browser():
-    webbrowser.open_new("http://localhost:5000/")
 
+# ✅ Questa riga deve stare *dopo* la definizione di create_app()
+app = create_app()
+
+
+# ✅ Avvio automatico solo in locale
 if __name__ == "__main__":
-    app = create_app()
+    def open_browser():
+        webbrowser.open_new("http://localhost:5000/")
     threading.Timer(1.0, open_browser).start()
     app.run(debug=True)
