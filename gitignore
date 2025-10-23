@@ -1,3 +1,55 @@
+# ======================
+# Python
+# ======================
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+
+# ======================
+# Environment / secrets
+# ======================
 .env
+.env.*
+*.env
+
+# ======================
+# Databases & backups
+# ======================
+# *.db
+backups/
+blueprints/admin/routes/*.db
+blueprints/zrl.db
+*.sqlite3
+
+# ======================
+# Logs
+# ======================
+*.log
+
+# ======================
+# IDE / OS files
+# ======================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ======================
+# Screenshots / temp data
+# ======================
+screenshots/
+screenshots_debug/
+data/*.csv
+data/*.json
+data/ocr_debug/
+*.txt
+
+# ======================
+# Keep empty folders
+# ======================
+!.gitkeep
