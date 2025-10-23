@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Formazioni AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <h1 class="mb-4 fw-bold text-primary">
+    <i class="bi bi-cpu-fill me-2"></i> Formazioni AI - {{ race.name if race else 'Nessuna Gara' }}
+  </h1>
+
+  {% if not lineup %}
+    <div class="alert alert-warning">Nessun rider disponibile per questa gara.</div>
+  {% else %}
+    <div class="row g-3">
+      {% set teams_displayed = lineup | groupby('team_name') %}
+      {% for team_name, riders in teams_displayed %}
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card shadow-sm team-card">
+            {% set team_category = riders[0].category if riders|length > 0 else 'N/A' %}
+            {% set color = {'A':'#dc3545','B':'#198754','C':'#0dcaf0','D':'#ffc107'}.get(team_category, '#adb5bd') %}
+            
+            <div class="card-header text-white d-flex justify-content-between align-items-center" 
+                 style="background-color: {{ color }}">
+              <strong class="text-truncate">{{ team_name }}</strong>
+              <span class="badge bg-dark">{{ riders|length }} / 6</span>
+            </div>
+
+            <ul class="list-group list-group-flush">
+              {% for rider in riders %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span>
+                    {{ rider.rider_name }}
+                    {% if rider.is_captain %}
+                      <i class="bi bi-star-fill text-warning ms-1" title="Capitano"></i>
+                    {% endif %}
+                  </span>
+                  <span class="badge bg-secondary">{{ rider.ranking or '—' }}</span>
+                </li>
+              {% endfor %}
+
+              {% for i in range(6 - riders|length) %}
+                <li class="list-group-item text-muted">Slot libero</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Modifica Gara{% endblock %}
+{% block page_title %}Modifica Gara{% endblock %}
+
+{% block content %}
+  {% if race %}
+    <form method="post">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-warning text-dark">✏️ Modifica Gara</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Nome:</label>
+              <input type="text" name="name" class="form-control" value="{{ race['name'] }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Data:</label>
+              <input type="date" name="race_date" class="form-control" value="{{ race['race_date'] }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Formato:</label>
+              <input type="text" name="format" class="form-control" value="{{ race['format'] }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Mondo:</label>
+              <input type="text" name="world" class="form-control" value="{{ race['world'] }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Percorso:</label>
+              <input type="text" name="course" class="form-control" value="{{ race['course'] }}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Giri:</label>
+              <input type="number" name="laps" class="form-control" value="{{ race['laps'] }}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Distanza (km):</label>
+              <input type="number" step="0.1" name="distance_km" class="form-control" value="{{ race['distance_km'] }}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Dislivello (m):</label>
+              <input type="number" step="0.1" name="elevation_m" class="form-control" value="{{ race['elevation_m'] }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Powerups:</label>
+              <input type="text" name="powerups" class="form-control" value="{{ race['powerups'] }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">FAL:</label>
+              <input type="text" name="fal_segments" class="form-control" value="{{ race['fal_segments'] }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">FTS:</label>
+              <input type="text" name="fts_segments" class="form-control" value="{{ race['fts_segments'] }}">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white">📊 Percorsi per Categoria</div>
+        <div class="card-body">
+          {% for cat in ["A", "B", "C", "D"] %}
+            <fieldset class="border p-3 mb-3">
+              <legend class="float-start">Categoria {{ cat }}</legend>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Percorso:</label>
+                  <input type="text" name="course_{{ cat }}" class="form-control"
+                         value="{{ variants[cat]['course'] if variants and cat in variants else '' }}">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">Giri:</label>
+                  <input type="number" name="laps_{{ cat }}" class="form-control"
+                         value="{{ variants[cat]['laps'] if variants and cat in variants else '' }}">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">Distanza (km):</label>
+                  <input type="number" step="0.1" name="distance_{{ cat }}" class="form-control"
+                         value="{{ variants[cat]['distance_km'] if variants and cat in variants else '' }}">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">Dislivello (m):</label>
+                  <input type="number" step="0.1" name="elevation_{{ cat }}" class="form-control"
+                         value="{{ variants[cat]['elevation_m'] if variants and cat in variants else '' }}">
+                </div>
+              </div>
+            </fieldset>
+          {% endfor %}
+        </div>
+        <div class="card-footer text-end">
+          <button type="submit" class="btn btn-primary">💾 Salva modifiche</button>
+        </div>
+      </div>
+    </form>
+  {% else %}
+    <div class="alert alert-warning">⚠️ Gara non trovata.</div>
+  {% endif %}
+{% endblock %}

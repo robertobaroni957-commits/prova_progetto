@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>ZRL Manager · Guida Utente</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Bootstrap & Icone -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+    h1, h2, h3 { color: #0d6efd; }
+    .guide-section { padding-top: 2rem; padding-bottom: 2rem; }
+    .icon { font-size: 1.2rem; color: #0d6efd; margin-right: 0.5rem; }
+    .toc a { text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    .card { margin-bottom: 1.5rem; }
+    .highlight { background-color: #e9f2ff; padding: 0.2rem 0.5rem; border-radius: 4px; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <!-- Titolo -->
+    <header class="mb-5 text-center">
+      <h1>🏁 ZRL Manager</h1>
+      <p class="lead">Guida utente intuitiva e visiva per gestire gare, team e dati ZRL</p>
+    </header>
+
+    <!-- Indice / TOC -->
+    <nav class="mb-4">
+      <h4>Indice</h4>
+      <ul class="list-unstyled toc">
+        <li><a href="#dashboard"><i class="bi bi-speedometer2 icon"></i>Dashboard</a></li>
+        <li><a href="#importazioni"><i class="bi bi-arrow-repeat icon"></i>Importazioni</a></li>
+        <li><a href="#stagioni-round"><i class="bi bi-calendar-range icon"></i>Stagioni & Round</a></li>
+        <li><a href="#gare"><i class="bi bi-people-fill icon"></i>Gare</a></li>
+        <li><a href="#team"><i class="bi bi-people icon"></i>Gestione Team</a></li>
+        <li><a href="#capitani"><i class="bi bi-person-badge-fill icon"></i>Gestione Capitani</a></li>
+        <li><a href="#logout"><i class="bi bi-box-arrow-right icon"></i>Logout</a></li>
+      </ul>
+    </nav>
+
+    <!-- Contenuto guida -->
+    <section id="dashboard" class="guide-section">
+      <h2><i class="bi bi-speedometer2 icon"></i>Dashboard</h2>
+      <p>La Dashboard fornisce una panoramica rapida di statistiche, gare, team e importazioni. È la prima schermata visibile dopo il login.</p>
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5>Esempio visivo</h5>
+          <p>Grafici e tabelle sintetiche per monitorare lo stato delle stagioni, dei round e dei team.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="importazioni" class="guide-section">
+      <h2><i class="bi bi-arrow-repeat icon"></i>Importazioni</h2>
+      <p>Gestisci l'importazione dei dati da fonti esterne come <span class="highlight">ZwiftPower</span> e <span class="highlight">WTRL</span>.</p>
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5>Funzioni principali</h5>
+          <ul>
+            <li>Importa gare da WTRL</li>
+            <li>Importa rider ZRL da ZwiftPower</li>
+            <li>Aggiorna automaticamente le informazioni disponibili</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="stagioni-round" class="guide-section">
+      <h2><i class="bi bi-calendar-range icon"></i>Stagioni & Round</h2>
+      <p>Gestione completa delle stagioni, dei round e delle date delle gare.</p>
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <ul>
+            <li>Crea nuove stagioni</li>
+            <li>Assegna date ai round</li>
+            <li>Visualizza riepiloghi delle stagioni passate</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="gare" class="guide-section">
+      <h2><i class="bi bi-people-fill icon"></i>Gare</h2>
+      <p>Gestione delle gare: monitoraggio, report e aggiornamenti in tempo reale.</p>
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <ul>
+            <li>Visualizza tutte le gare programmate</li>
+            <li>Genera report formazioni</li>
+            <li>Funzioni future (TBC)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="team" class="guide-section">
+      <h2><i class="bi bi-people icon"></i>Gestione Team</h2>
+      <p>Gestione completa dei team partecipanti alle gare ZRL.</p>
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <ul>
+            <li>Crea e modifica team</li>
+            <li>Assegna rider ai team</li>
+            <li>Visualizza riepilogo team e statistiche</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="capitani" class="guide-section">
+      <h2><i class="bi bi-person-badge-fill icon"></i>Gestione Capitani</h2>
+      <p>Assegna e modifica il ruolo di capitano per i team.</p>
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <ul>
+            <li>Designa capitani per ogni team</li>
+            <li>Modifica permessi e ruoli</li>
+            <li>Visualizza riepilogo capitani attivi</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="logout" class="guide-section">
+      <h2><i class="bi bi-box-arrow-right icon"></i>Logout</h2>
+      <p>Per terminare la sessione, clicca sul pulsante <span class="highlight">Logout</span> situato nella sidebar.</p>
+    </section>
+
+    <!-- Footer -->
+    <footer class="mt-5 text-center text-muted">
+      <p>&copy; 2025 ZRL Manager • Tutti i diritti riservati</p>
+    </footer>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

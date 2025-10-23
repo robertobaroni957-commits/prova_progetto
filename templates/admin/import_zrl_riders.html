@@ -2,7 +2,12 @@
 {% block content %}
 
 <div class="container" style="max-width: 900px; margin: auto;">
-  <h2 class="mb-3 text-center">Importazione rider in ZRL</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0 text-center">Importazione rider in ZRL</h2>
+    <a href="{{ url_for('admin_import_riders.update_all_riders') }}" class="btn btn-sm btn-warning">
+      🔄 Aggiorna tutti i rider
+    </a>
+  </div>
 
   <!-- Filtro categoria -->
   <form method="get" class="d-flex gap-2 align-items-center mb-3">

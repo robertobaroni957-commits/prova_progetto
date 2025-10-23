@@ -18,7 +18,7 @@ from routes.seasons import seasons_bp
 
 # Blueprint admin modulari (centralizzati)
 from blueprints.admin.routes import all_blueprints as admin_blueprints
-
+from blueprints.ai_lineup import ai_lineup_bp
 
 def create_app():
     app = Flask(__name__, static_folder="static", template_folder="templates")
@@ -31,6 +31,7 @@ def create_app():
     app.register_blueprint(main_bp)
     app.register_blueprint(scrape_bp)
     app.register_blueprint(debug_bp)
+    app.register_blueprint(ai_lineup_bp)
 
     # 🔧 Blueprint admin modulari
     for bp in admin_blueprints:
@@ -56,14 +57,10 @@ def create_app():
 
     return app
 
+def open_browser():
+    webbrowser.open_new("http://localhost:5000/")
 
-# ✅ Questa riga deve stare *dopo* la definizione di create_app()
-app = create_app()
-
-
-# ✅ Avvio automatico solo in locale
 if __name__ == "__main__":
-    def open_browser():
-        webbrowser.open_new("http://localhost:5000/")
+    app = create_app()
     threading.Timer(1.0, open_browser).start()
     app.run(debug=True)
