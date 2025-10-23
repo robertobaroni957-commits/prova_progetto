@@ -64,3 +64,5 @@ if __name__ == "__main__":
     app = create_app()
     threading.Timer(1.0, open_browser).start()
     app.run(debug=True)
+# 👇 Aggiungi questa riga per Gunicorn
+app = create_app()
