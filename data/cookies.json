@@ -1,0 +1,40 @@
+[
+  {
+    "name": "GA1.1.192489117.1758839524",
+    "value": ".wtrl.racing",
+    "domain": "wtrl.racing",
+    "path": "/",
+    "expiry": 1761138881,
+    "secure": false,
+    "httpOnly": false
+  },
+  {
+    "name": "_ga_SL0YM0MYT3",
+    "value": "GS2.1.s1761136179$o69$g1$t1761138094$j60$l0$h0",
+    "domain": "wtrl.racing",
+    "path": "/",
+    "expiry": 1795698094,
+    "secure": false,
+    "httpOnly": false
+  },
+  {
+    "name": "wtrl_ouid",
+    "value": "eyJpYXQiOjE3NjExMjAwNDksImVhdCI6MTc2MzcxMjA0OSwicHJvZmlsZV9waWMiOiJodHRwczpcL1wvd3d3Lnd0cmwucmFjaW5nXC91cGxvYWRzXC9wcm9maWxlX3BpY3R1cmVcL2RlZmF1bHQucG5nIiwiZmlyc3RfbmFtZSI6IlN0cmVldCIsImxhc3RfbmFtZSI6Ikhhd2siLCJlbWFpbCI6ImZyYW5jZXNjby5yYXZhc2lAaG90bWFpbC5jb20iLCJ1c2VyQ2xhc3MiOiIxIiwiendpZnRJZCI6IjcwNzI3MjciLCJ1dWlkIjoiNjA3NWJiM2YtYWRkNS00NWM1LWEzNTUtMDk2NDU4YzQ5MTdhIiwidXNlcklkIjoiODc2ODUiLCJjb3VudHJ5X2lkIjoiMzgwIiwiZ2VuZGVyIjoiTWFsZSIsInJhY2VUZWFtIjoiMCJ9.1925b76d2c05c727a33ccf928d1ac72e",
+    "domain": "www.wtrl.racing",
+    "path": "/",
+    "expiry": 1763712050,
+    "secure": true,
+    "httpOnly": true,
+    "sameSite": "Strict"
+  },
+  {
+    "name": "wtrl_sid",
+    "value": "1925b76d2c05c727a33ccf928d1ac72e",
+    "domain": "www.wtrl.racing",
+    "path": "/",
+    "expiry": 1761724837,
+    "secure": true,
+    "httpOnly": true,
+    "sameSite": "Lax"
+  }
+]
