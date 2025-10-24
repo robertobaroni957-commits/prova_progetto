@@ -49,7 +49,7 @@ def read_riders_file():
         return None
     return df
 
-# --- ROUTE: aggiorna tutti i rider esistenti ---
+# --- ROUTE: aggiorna tutti i rider esistenti  nel DB---
 @admin_import_riders_bp.route("/update_all", methods=["GET"])
 def update_all_riders():
     df = read_riders_file()
@@ -61,28 +61,42 @@ def update_all_riders():
     conn = get_zrl_conn()
     cur = conn.cursor()
 
+    # Crea dizionario per accesso veloce ai rider dal file
+    df_dict = {str(row["zwift_power_id"]): row for _, row in df.iterrows()}
+
+    # Prende tutti i rider già nel DB
+    cur.execute("SELECT zwift_power_id FROM riders")
+    db_riders = [row["zwift_power_id"] for row in cur.fetchall()]
+
     updated = 0
-    for _, row in df.iterrows():
-        existing = cur.execute("SELECT 1 FROM riders WHERE zwift_power_id=?", (row["zwift_power_id"],)).fetchone()
-        if existing:
-            cur.execute("""
-                UPDATE riders SET
-                    name=?, category=?, ranking=?,
-                    wkg_20min=?, watt_20min=?, wkg_15sec=?, watt_15sec=?,
-                    status=?, races=?, weight=?, ftp=?, age=?, country=?, profile_url=?
-                WHERE zwift_power_id=?
-            """, (
-                row.get("name"), row.get("category"), row.get("ranking"),
-                row.get("wkg_20min"), row.get("watt_20min"), row.get("wkg_15sec"), row.get("watt_15sec"),
-                row.get("status"), row.get("races"), row.get("weight"), row.get("ftp"), row.get("age"),
-                row.get("country"), row.get("profile_url"), row.get("zwift_power_id")
-            ))
-            updated += 1
+    not_found = 0
+
+    for zwid in db_riders:
+        if str(zwid) not in df_dict:
+            not_found += 1
+            continue
+
+        r = df_dict[str(zwid)]
+        cur.execute("""
+            UPDATE riders SET
+                name=?, category=?, ranking=?,
+                wkg_20min=?, watt_20min=?, wkg_15sec=?, watt_15sec=?,
+                status=?, races=?, weight=?, ftp=?, age=?, country=?, profile_url=?
+            WHERE zwift_power_id=?
+        """, (
+            r.get("name"), r.get("category"), r.get("ranking"),
+            r.get("wkg_20min"), r.get("watt_20min"), r.get("wkg_15sec"), r.get("watt_15sec"),
+            r.get("status"), r.get("races"), r.get("weight"), r.get("ftp"), r.get("age"),
+            r.get("country"), r.get("profile_url"), zwid
+        ))
+        updated += 1
 
     conn.commit()
     conn.close()
-    flash(f"✅ Rider aggiornati: {updated}. Backup DB: {backup_file}", "success")
+
+    flash(f"✅ Aggiornamento completato. Rider aggiornati: {updated}, non trovati nei file: {not_found}. Backup: {backup_file}", "success")
     return redirect(url_for("admin_import_riders.import_zrl_riders"))
+
 
 # --- ROUTE: import selettivo nuovi rider ---
 @admin_import_riders_bp.route("/zrl_riders", methods=["GET", "POST"])
