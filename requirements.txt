@@ -33,8 +33,7 @@ soupsieve==2.8
 
 # Automation / Browsers
 playwright==1.55.0
-# pyppeteer rimosso per evitare conflitto con pyee
-# pyee rimosso perché gestito da Playwright
+selenium==4.36.0
 
 # HTTP
 requests==2.32.5
