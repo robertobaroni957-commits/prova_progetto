@@ -2,7 +2,7 @@
 
   <!-- DASHBOARD -->
   <h6 class="text-muted text-uppercase small mt-2">Dashboard</h6>
-  <a href="{{ url_for('admin_panel.admin_dashboard') if 'admin_panel.admin_dashboard' in app.view_functions else '#' }}"
+  <a href="{{ url_for('admin_panel.admin_dashboard') }}"
      class="nav-link py-2 {% if request.endpoint == 'admin_panel.admin_dashboard' %}fw-bold text-primary{% endif %}">
     <i class="bi bi-bar-chart-fill me-2 text-info"></i> Dashboard ZRL
   </a>
@@ -11,40 +11,40 @@
 
   <!-- IMPORTAZIONI -->
   <h6 class="text-muted text-uppercase small mt-3">Importazioni</h6>
-  <a href="{{ url_for('admin_import_riders.import_zrl_riders') if 'admin_import_riders.import_zrl_riders' in app.view_functions else '#' }}"
+  <a href="{{ url_for('admin_import_riders.import_zrl_riders') }}"
      class="nav-link py-2">
     <i class="bi bi-person-check-fill me-2 text-success"></i> Rider ZRL
   </a>
-  <a href="{{ url_for('admin_import_riders.update_all_riders') if 'admin_import_riders.update_all_riders' in app.view_functions else '#' }}"
+  <a href="{{ url_for('admin_import_riders.update_all_riders') }}"
      class="nav-link py-2">
     <i class="bi bi-arrow-clockwise me-2 text-warning"></i> Aggiorna tutti i rider
   </a>
-  <a href="{{ url_for('import_wtrl.import_wtrl_races') if 'import_wtrl.import_wtrl_races' in app.view_functions else '#' }}"
+  <a href="{{ url_for('import_wtrl.import_wtrl_races') }}"
      class="nav-link py-2">
     <i class="bi bi-calendar-fill me-2 text-info"></i> Importa gare da WTRL
   </a>
 
   <!-- STAGIONI & ROUND -->
   <h6 class="text-muted text-uppercase small mt-3">Stagioni & Round</h6>
-  <a href="{{ url_for('admin_races.import_races') if 'admin_races.import_races' in app.view_functions else '#' }}"
+  <a href="{{ url_for('admin_races.import_races') }}"
      class="nav-link py-2">
     <i class="bi bi-calendar-range me-2 text-success"></i> Gestione Stagioni e Round
   </a>
 
   <!-- GARE -->
   <h6 class="text-muted text-uppercase small mt-3">Gare</h6>
-  <a href="{{ url_for('admin_lineup.lineup_report_all') if 'admin_lineup.lineup_report_all' in app.view_functions else '#' }}"
+  <a href="{{ url_for('admin_lineup.lineup_report_all') }}"
      class="nav-link py-2 {% if request.endpoint == 'admin_lineup.lineup_report_all' %}fw-bold text-primary{% endif %}">
     <i class="bi bi-file-text-fill me-2 text-info"></i> Report Formazioni
   </a>
-  <a href="{{ url_for('admin_races.manage_captains') if 'admin_races.manage_captains' in app.view_functions else '#' }}"
+  <a href="{{ url_for('admin_races.manage_captains') }}"
      class="nav-link py-2 {% if request.endpoint == 'admin_races.manage_captains' %}fw-bold text-primary{% endif %}">
     <i class="bi bi-person-badge-fill me-2 text-info"></i> Gestione Capitani
   </a>
 
-  <!-- Reports -->
+  <!-- REPORTS -->
   <h6 class="text-muted text-uppercase small mt-3">Reports</h6>
-  <a href="{{ url_for('admin_reports.index') if 'admin_reports.index' in app.view_functions else '#' }}" 
+  <a href="{{ url_for('admin_reports.index') }}" 
      class="nav-link py-2 {% if request.endpoint and 'admin_reports' in request.endpoint %}active fw-bold text-primary{% endif %}">
     <i class="bi bi-cpu-fill me-2 text-success"></i>
     Reports Amministrativi
@@ -53,7 +53,7 @@
 
   <!-- TEAM -->
   <h6 class="text-muted text-uppercase small mt-3">Team</h6>
-  <a href="{{ url_for('admin_teams.manage_teams') if 'admin_teams.manage_teams' in app.view_functions else '#' }}"
+  <a href="{{ url_for('admin_teams.manage_teams') }}"
      class="nav-link py-2 {% if request.endpoint == 'admin_teams.manage_teams' %}fw-bold text-primary{% endif %}">
     <i class="bi bi-people me-2 text-secondary"></i> Gestione Team
   </a>
@@ -61,7 +61,7 @@
   <hr>
 
   <!-- LOGOUT -->
-  <a href="{{ url_for('auth.logout') if 'auth.logout' in app.view_functions else '#' }}" class="nav-link text-danger py-2">
+  <a href="{{ url_for('auth.logout') }}" class="nav-link text-danger py-2">
     <i class="bi bi-box-arrow-right me-2"></i> Logout
   </a>
 </div>
