@@ -102,50 +102,111 @@
     {% endif %}
   {% endif %}
 
-  <!-- 🔹 Card Squadre -->
+  <!-- 🔹 Sezione Squadre -->
   <hr class="my-4">
-  <h2 class="mb-3">Squadre</h2>
-  <div class="row g-3">
-    {% for team in teams %}
-      <div class="col-6 col-md-4 col-lg-2">
-        {% if team.empty %}
-          <div class="card border-0 bg-light" style="height: 100px;"></div>
-        {% else %}
-          {% set color = {
-            'A': '#dc3545', 'B': '#198754', 'C': '#0dcaf0', 'D': '#ffc107'
-          }[team.category] if team.category in ['A','B','C','D'] else '#adb5bd' %}
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+    <h2 class="mb-0">Squadre</h2>
 
-          {% if race_date %}
-            <a href="{{ url_for('admin_lineup.manage_riders', team_id=team.id, race_date=race_date) }}"
-               class="text-decoration-none text-dark">
-          {% else %}
-            <a href="#" class="text-decoration-none text-muted" title="Nessuna gara disponibile">
-          {% endif %}
-              <div class="card shadow-sm team-card small hover-shadow position-relative"
-                   style="border-left: 4px solid {{ color }}; cursor: pointer;">
-                {% if team.has_lineup %}
-                  <span class="position-absolute top-0 end-0 badge rounded-pill bg-success m-1">✔</span>
-                {% endif %}
-                <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center">
-                  <strong class="text-truncate" style="max-width: 70%;">{{ team.name or '—' }}</strong>
-                  <span class="badge bg-primary">🚴 {{ team.rider_count or 0 }}</span>
-                </div>
-                <div class="card-body py-1 px-2">
-                  <p class="mb-1"><strong>Cat:</strong> {{ team.category or '—' }}</p>
-                  <p class="mb-1"><strong>Div:</strong> {{ team.division or '—' }}</p>
-                  <p class="mb-0"><strong>Cap:</strong>
-                    {% if team.captain_name %}
-                      <span class="text-success">{{ team.captain_name }}</span>
-                    {% else %}
-                      <span class="text-muted">—</span>
-                    {% endif %}
-                  </p>
-                </div>
-              </div>
-            </a>
-        {% endif %}
+    <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+      <input type="text" id="teamSearch" class="form-control form-control-sm" placeholder="Cerca squadra..." style="max-width: 200px;">
+      <select id="categoryFilter" class="form-select form-select-sm">
+        <option value="">Tutte le categorie</option>
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="D">D</option>
+      </select>
+      <select id="divisionFilter" class="form-select form-select-sm">
+        <option value="">Tutte le divisioni</option>
+        {% for div in teams | map(attribute='division') | unique %}
+          {% if div %}<option value="{{ div }}">{{ div }}</option>{% endif %}
+        {% endfor %}
+      </select>
+      <div class="form-check ms-2">
+        <input class="form-check-input" type="checkbox" id="hasLineupFilter">
+        <label class="form-check-label small" for="hasLineupFilter">Solo con lineup ✔</label>
       </div>
-    {% endfor %}
+    </div>
+  </div>
+
+  <div class="team-grid" style="max-height: 650px; overflow-y: auto; padding-right: 6px;">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3" id="teamsContainer">
+      {% for team in teams %}
+        <div class="col team-card-wrapper"
+             data-category="{{ team.category }}"
+             data-division="{{ team.division }}"
+             data-lineup="{{ 'true' if team.has_lineup else 'false' }}"
+             data-name="{{ team.name|lower }}">
+          {% if team.empty %}
+            <div class="card border-0 bg-light" style="height: 100px;"></div>
+          {% else %}
+            {% set color = {
+              'A': '#dc3545', 'B': '#198754', 'C': '#0dcaf0', 'D': '#ffc107'
+            }[team.category] if team.category in ['A','B','C','D'] else '#adb5bd' %}
+
+            {% if race_date %}
+              <a href="{{ url_for('admin_lineup.manage_riders', team_id=team.id, race_date=race_date) }}"
+                 class="text-decoration-none text-dark">
+            {% else %}
+              <a href="#" class="text-decoration-none text-muted" title="Nessuna gara disponibile">
+            {% endif %}
+                <div class="card shadow-sm small hover-shadow position-relative h-100"
+                     style="border-left: 4px solid {{ color }}; cursor: pointer;">
+                  {% if team.has_lineup %}
+                    <span class="position-absolute top-0 end-0 badge rounded-pill bg-success m-1">✔</span>
+                  {% endif %}
+                  <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center">
+                    <strong class="text-truncate" style="max-width: 70%;">{{ team.name or '—' }}</strong>
+                    <span class="badge bg-primary">🚴 {{ team.rider_count or 0 }}</span>
+                  </div>
+                  <div class="card-body py-1 px-2">
+                    <p class="mb-1"><strong>Cat:</strong> {{ team.category or '—' }}</p>
+                    <p class="mb-1"><strong>Div:</strong> {{ team.division or '—' }}</p>
+                    <p class="mb-0"><strong>Cap:</strong>
+                      {% if team.captain_name %}
+                        <span class="text-success">{{ team.captain_name }}</span>
+                      {% else %}
+                        <span class="text-muted">—</span>
+                      {% endif %}
+                    </p>
+                  </div>
+                </div>
+              </a>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const searchInput = document.getElementById('teamSearch');
+  const categorySelect = document.getElementById('categoryFilter');
+  const divisionSelect = document.getElementById('divisionFilter');
+  const hasLineupCheckbox = document.getElementById('hasLineupFilter');
+  const cards = document.querySelectorAll('.team-card-wrapper');
+
+  function filterTeams() {
+    const query = searchInput.value.toLowerCase();
+    const category = categorySelect.value;
+    const division = divisionSelect.value;
+    const hasLineup = hasLineupCheckbox.checked;
+
+    cards.forEach(card => {
+      const matchesName = card.dataset.name.includes(query);
+      const matchesCat = !category || card.dataset.category === category;
+      const matchesDiv = !division || card.dataset.division === division;
+      const matchesLineup = !hasLineup || card.dataset.lineup === "true";
+
+      card.style.display = (matchesName && matchesCat && matchesDiv && matchesLineup) ? '' : 'none';
+    });
+  }
+
+  searchInput.addEventListener('input', filterTeams);
+  categorySelect.addEventListener('change', filterTeams);
+  divisionSelect.addEventListener('change', filterTeams);
+  hasLineupCheckbox.addEventListener('change', filterTeams);
+});
+</script>
 {% endblock %}
