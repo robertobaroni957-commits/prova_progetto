@@ -8,6 +8,7 @@ from blueprints.auth.routes import auth_bp
 from blueprints.main.routes import main_bp
 from blueprints.scrape.routes import scrape_bp
 from blueprints.debug.routes import debug_bp
+from blueprints.admin.routes.admin_reports import admin_reports_bp
 
 # Blueprint captain
 from blueprints.captain.routes import all_blueprints as captain_blueprints
@@ -32,7 +33,8 @@ def create_app():
     app.register_blueprint(scrape_bp)
     app.register_blueprint(debug_bp)
     app.register_blueprint(ai_lineup_bp)
-
+    app.register_blueprint(admin_reports_bp, url_prefix="/admin/reports")
+    
     # 🔧 Blueprint admin modulari
     for bp in admin_blueprints:
         app.register_blueprint(bp)
@@ -64,5 +66,3 @@ if __name__ == "__main__":
     app = create_app()
     threading.Timer(1.0, open_browser).start()
     app.run(debug=True)
-# 👇 Aggiungi questa riga per Gunicorn
-app = create_app()

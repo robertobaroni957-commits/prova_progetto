@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Report Amministrativi{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- 🔹 Titolo pagina -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-primary mb-0">
+      <i class="bi bi-file-earmark-bar-graph-fill me-2"></i> Report Amministrativi
+    </h2>
+    <a href="{{ url_for('admin_panel.admin_dashboard')
+ }}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Torna alla Dashboard
+    </a>
+  </div>
+
+  <!-- 🔹 Messaggi flash -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- 🔹 Descrizione -->
+  <p class="text-muted mb-4">
+    Da questa sezione puoi scaricare in formato <strong>PDF</strong> o <strong>CSV</strong> i principali report
+    del sistema <em>Gestione ZRL</em>. Tutti i dati vengono generati in tempo reale dal database.
+  </p>
+
+  <!-- 🔹 Sezione report -->
+  <div class="row g-4">
+
+    <!-- Report formazioni confermate -->
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card shadow-sm h-100 border-0 rounded-3">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title text-primary fw-bold">
+            <i class="bi bi-people-fill me-2"></i> Formazioni Confermate
+          </h5>
+          <p class="card-text small text-muted flex-grow-1">
+            Elenco dettagliato dei riders presenti nelle formazioni confermate, con indicazione di squadra e categoria.
+          </p>
+          <a href="{{ url_for('admin_reports.lineup_report_pdf') }}" class="btn btn-sm btn-primary mt-auto w-100">
+            <i class="bi bi-filetype-pdf me-1"></i> Scarica PDF
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report riders attivi -->
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card shadow-sm h-100 border-0 rounded-3">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title text-success fw-bold">
+            <i class="bi bi-person-lines-fill me-2"></i> Riders Attivi
+          </h5>
+          <p class="card-text small text-muted flex-grow-1">
+            Esporta un elenco di tutti i riders attivi con dati anagrafici, categoria, FTP e ranking.
+          </p>
+          <a href="{{ url_for('admin_reports.riders_csv') }}" class="btn btn-sm btn-success mt-auto w-100">
+            <i class="bi bi-filetype-csv me-1"></i> Esporta CSV
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report squadre -->
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card shadow-sm h-100 border-0 rounded-3">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title text-warning fw-bold">
+            <i class="bi bi-shield-fill me-2"></i> Squadre
+          </h5>
+          <p class="card-text small text-muted flex-grow-1">
+            Report completo delle squadre registrate, con numero di riders, categoria, divisione e capitano.
+          </p>
+          <a href="{{ url_for('admin_reports.teams_pdf') }}" class="btn btn-sm btn-warning mt-auto w-100">
+            <i class="bi bi-file-earmark-text me-1"></i> Scarica PDF
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 🔹 Footer -->
+  <div class="text-center mt-5 text-muted small">
+    Ultimo aggiornamento: {{ now().strftime('%d/%m/%Y %H:%M') }}
+  </div>
+
+</div>
+{% endblock %}

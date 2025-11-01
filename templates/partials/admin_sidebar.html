@@ -48,6 +48,13 @@
     <i class="bi bi-people text-secondary fs-5"></i> Gestione Team
   </a>
 
+  <!-- REPORT -->
+  <h6 class="text-muted text-uppercase mt-4">Report</h6>
+  <a href="{{ url_for('admin_reports.index') }}" 
+     class="nav-link d-flex align-items-center gap-3 py-2 {% if 'admin_reports' in request.endpoint %}active fw-bold text-primary{% endif %}">
+    <i class="bi bi-file-earmark-bar-graph text-primary fs-5"></i> Report Amministrativi
+  </a>
+
   <hr>
 
   <!-- LOGOUT -->
