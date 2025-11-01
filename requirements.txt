@@ -36,7 +36,6 @@ psycopg2-binary==2.9.10
 pycparser==2.23
 pycryptodomex==3.23.0
 pyperclip==1.11.0
-pyppeteer==2.0.0
 pyquery==2.0.1
 pytesseract==0.3.13
 python-dateutil==2.9.0.post0
