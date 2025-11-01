@@ -1,23 +1,17 @@
-import threading
-import webbrowser
+# run.py
+
 from flask import Flask, redirect, render_template
 from db import close_db
 
-# Blueprint principali
+# Blueprint imports
 from blueprints.auth.routes import auth_bp
 from blueprints.main.routes import main_bp
 from blueprints.scrape.routes import scrape_bp
 from blueprints.debug.routes import debug_bp
 from blueprints.admin.routes.admin_reports import admin_reports_bp
-
-# Blueprint captain
 from blueprints.captain.routes import all_blueprints as captain_blueprints
 from blueprints.captain.routes.captain_panel import captain_panel
-
-# Blueprint stagioni
 from routes.seasons import seasons_bp
-
-# Blueprint admin modulari (centralizzati)
 from blueprints.admin.routes import all_blueprints as admin_blueprints
 from blueprints.ai_lineup import ai_lineup_bp
 
@@ -59,10 +53,5 @@ def create_app():
 
     return app
 
-def open_browser():
-    webbrowser.open_new("http://localhost:5000/")
-
-if __name__ == "__main__":
-    app = create_app()
-    threading.Timer(1.0, open_browser).start()
-    app.run(debug=True)
+# ❗ Esportazione globale per Gunicorn / Render
+app = create_app()
