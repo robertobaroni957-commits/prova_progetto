@@ -10,4 +10,4 @@ python-dotenv==1.1.1
 pyperclip==1.11.0
 tqdm==4.67.1
 gunicorn==21.2.0
-"reportlab" 
+reportlab
