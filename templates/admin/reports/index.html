@@ -158,7 +158,7 @@
               {% for i in range(6) %}
                 <tr>
                   {% if rider_list[i] is defined %}
-                    <td>{{ rider_list[i].name }}</td>
+                    <td>{{ rider_list[i].rider }}</td>
                     <td><span class="badge-category badge-{{ rider_list[i].category|default('OTHER') }}">{{ rider_list[i].category|default('') }}</span></td>
                   {% else %}
                     <td>&nbsp;</td>

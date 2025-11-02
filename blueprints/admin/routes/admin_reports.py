@@ -4,6 +4,8 @@ import pandas as pd
 import io
 import datetime
 import locale
+import sqlite3
+
 
 # Imposta la localizzazione italiana per la data, con fallback sicuro
 try:
@@ -69,9 +71,11 @@ def index():
             SELECT t.name AS team, t.category, COUNT(r.zwift_power_id) AS n_riders,
                    COALESCE(r2.name, '') AS captain
             FROM teams t
-            LEFT JOIN riders r ON r.team_id = t.id AND r.active=1
+            LEFT JOIN rider_teams rt ON rt.team_id = t.id
+            LEFT JOIN riders r ON r.zwift_power_id = rt.zwift_power_id AND r.active=1
             LEFT JOIN riders r2 ON r2.zwift_power_id = t.captain_zwift_id
             GROUP BY t.id
+            ORDER BY t.category ASC, t.name ASC
         """
         rows = [dict(r) for r in conn.execute(query).fetchall()]
         columns = ["team", "category", "n_riders", "captain"]
@@ -80,8 +84,8 @@ def index():
         query = """
             SELECT t.name AS team, r.name AS rider, TRIM(UPPER(r.category)) AS category, rl.race_date
             FROM race_lineup rl
-            JOIN riders r ON r.zwift_power_id = rl.zwift_power_id
-            JOIN teams t ON t.id = rl.team_id
+            LEFT JOIN riders r ON r.zwift_power_id = rl.zwift_power_id AND r.active = 1
+            LEFT JOIN teams t ON t.id = rl.team_id
             WHERE 1=1
         """
         params = []
@@ -89,22 +93,44 @@ def index():
             query += " AND TRIM(UPPER(r.category)) = ?"
             params.append(category_filter)
         query += " ORDER BY t.name, r.name"
-        rows = [dict(r) for r in conn.execute(query, params).fetchall()]
 
-        # raggruppa per team
+        # Usa row_factory per avere dizionari coerenti
+        conn.row_factory = sqlite3.Row
+        rows_raw = conn.execute(query, params).fetchall()
+
+        # Trasforma i Row in dizionari con nomi coerenti
+        rows = []
+        for r in rows_raw:
+            rows.append({
+                "team": r["team"] or "Senza Team",
+                "rider": r["rider"] or "—",
+                "category": r["category"] or "OTHER",
+                "race_date": r["race_date"] or ""
+            })
+
+        # Raggruppa per team
         lineup_per_team = {}
         for r in rows:
-            team = r.get("team") or "Senza Team"
-            r["rider"] = r.get("rider") or ""
-            r["category"] = r.get("category") or "OTHER"
-            r["race_date"] = r.get("race_date") or ""
-            lineup_per_team.setdefault(team, []).append(r)
+            team = r["team"]
+            lineup_per_team.setdefault(team, []).append({
+                "rider": r["rider"],
+                "category": r["category"],
+                "race_date": r["race_date"]
+            })
 
+        # Format della data della gara (solo per visualizzazione)
+        race_date = None
         if rows:
+            first_date = rows[0]["race_date"]
             try:
-                race_date = datetime.datetime.strptime(rows[0]["race_date"], "%Y-%m-%d").strftime("%d %B %Y")
+                race_date = datetime.datetime.strptime(first_date, "%Y-%m-%d").strftime("%d %B %Y")
             except Exception:
-                race_date = rows[0]["race_date"]
+                race_date = first_date
+
+    # Debug (opzionale)
+    # import pprint
+    # pprint.pprint(lineup_per_team)
+
 
     elif report_type == "team_composition":
         query = """
@@ -150,6 +176,7 @@ def index():
         lineup_per_team=lineup_per_team if report_type in ["lineup", "team_composition"] else None,
         race_date=race_date
     )
+
 
 
 
