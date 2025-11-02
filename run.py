@@ -59,10 +59,13 @@ def create_app():
 
     return app
 
+# CREA L’OGGETTO app GLOBALE PER GUNICORN
+app = create_app()
+
 def open_browser():
-    webbrowser.open_new("http://localhost:5000/")
+    import webbrowser, threading
+    threading.Timer(1.0, lambda: webbrowser.open_new("http://localhost:5000/")).start()
 
 if __name__ == "__main__":
-    app = create_app()
-    threading.Timer(1.0, open_browser).start()
+    open_browser()
     app.run(debug=True)
