@@ -1,98 +1,194 @@
 {% extends "base.html" %}
-{% block title %}Report Amministrativi{% endblock %}
-
 {% block content %}
-<div class="container py-4">
 
-  <!-- 🔹 Titolo pagina -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold text-primary mb-0">
-      <i class="bi bi-file-earmark-bar-graph-fill me-2"></i> Report Amministrativi
-    </h2>
-    <a href="{{ url_for('admin_panel.admin_dashboard')
- }}" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-arrow-left"></i> Torna alla Dashboard
-    </a>
+<style>
+  .report-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .report-table {
+    font-size: 0.85rem;
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    table-layout: fixed;
+  }
+
+  .report-table th,
+  .report-table td {
+    padding: 4px 8px;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #dee2e6;
+    height: 28px;
+    line-height: 28px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .report-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  .badge-category {
+    display: inline-block;
+    padding: 0.25em 0.5em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 0.25rem;
+    color: #fff;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .badge-A { background-color: #dc3545; }
+  .badge-B { background-color: #28a745; }
+  .badge-C { background-color: #17a2b8; }
+  .badge-D { background-color: #ffc107; color: #212529; }
+  .badge-OTHER { background-color: #6c757d; }
+
+  .report-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .filter-form {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .lineup-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .team-table {
+    flex: 1 1 calc(50% - 0.5rem);
+    min-width: 300px;
+  }
+
+  .team-table thead tr th {
+    color: #fff;
+    font-weight: 600;
+    background-color: inherit;
+  }
+
+  .thead-A { background-color: #dc3545; }
+  .thead-B { background-color: #28a745; }
+  .thead-C { background-color: #17a2b8; }
+  .thead-D { background-color: #ffc107; color: #212529; }
+  .thead-OTHER { background-color: #6c757d; }
+</style>
+
+<div class="report-container">
+  <h5 class="fw-bold mb-3">
+    📊 Report Amministrativi
+    {% if report_type == 'lineup' and race_date %}
+      <small class="text-muted">– Gara del {{ race_date }}</small>
+    {% endif %}
+  </h5>
+
+  <div class="report-controls">
+    <form method="get" class="filter-form">
+      <div>
+        <label for="report_type" class="form-label mb-0 small text-muted">Report</label>
+        <select name="report_type" id="report_type" class="form-select form-select-sm" onchange="this.form.submit()">
+          <option value="riders_compact" {% if report_type == 'riders_compact' %}selected{% endif %}>Riders Compatto</option>
+          <option value="teams" {% if report_type == 'teams' %}selected{% endif %}>Teams</option>
+          <option value="lineup" {% if report_type == 'lineup' %}selected{% endif %}>Lineup</option>
+        </select>
+      </div>
+
+      {% if report_type in ['riders_compact', 'lineup'] %}
+      <div>
+        <label for="category" class="form-label mb-0 small text-muted">Categoria</label>
+        <select name="category" id="category" class="form-select form-select-sm">
+          <option value="">Tutte</option>
+          {% for cat in categories %}
+            <option value="{{ cat }}" {% if cat == category_filter %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <div>
+        <button class="btn btn-primary btn-sm">Filtra</button>
+      </div>
+    </form>
+
+    <div class="export-buttons">
+      <a href="{{ url_for('admin_reports.export_report', report_type=report_type, category=category_filter, fmt='csv') }}" class="btn btn-success btn-sm">CSV</a>
+      <a href="{{ url_for('admin_reports.export_report', report_type=report_type, category=category_filter, fmt='xlsx') }}" class="btn btn-primary btn-sm">Excel</a>
+      <a href="{{ url_for('admin_reports.export_report', report_type=report_type, category=category_filter, fmt='pdf') }}" class="btn btn-danger btn-sm">PDF</a>
+    </div>
   </div>
 
-  <!-- 🔹 Messaggi flash -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  {% if report_type == 'lineup' %}
+    <div class="lineup-grid">
+      {% for team, riders in lineup_per_team.items() %}
+        {% set rider_list = riders|list %}
+        {% set team_category = rider_list[0].category|default('OTHER') if rider_list|length > 0 else 'OTHER' %}
+        {% set header_class = "thead-" + team_category %}
+        <div class="team-table">
+          <h6 class="fw-bold">{{ team }}</h6>
+          <table class="table table-sm report-table">
+            <thead>
+              <tr class="{{ header_class }}">
+                <th>Rider</th>
+                <th>Categoria</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for i in range(6) %}
+                <tr>
+                  {% if rider_list[i] is defined %}
+                    <td>{{ rider_list[i].name }}</td>
+                    <td><span class="badge-category badge-{{ rider_list[i].category|default('OTHER') }}">{{ rider_list[i].category|default('') }}</span></td>
+                  {% else %}
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                  {% endif %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       {% endfor %}
-    {% endif %}
-  {% endwith %}
-
-  <!-- 🔹 Descrizione -->
-  <p class="text-muted mb-4">
-    Da questa sezione puoi scaricare in formato <strong>PDF</strong> o <strong>CSV</strong> i principali report
-    del sistema <em>Gestione ZRL</em>. Tutti i dati vengono generati in tempo reale dal database.
-  </p>
-
-  <!-- 🔹 Sezione report -->
-  <div class="row g-4">
-
-    <!-- Report formazioni confermate -->
-    <div class="col-12 col-md-6 col-lg-4">
-      <div class="card shadow-sm h-100 border-0 rounded-3">
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title text-primary fw-bold">
-            <i class="bi bi-people-fill me-2"></i> Formazioni Confermate
-          </h5>
-          <p class="card-text small text-muted flex-grow-1">
-            Elenco dettagliato dei riders presenti nelle formazioni confermate, con indicazione di squadra e categoria.
-          </p>
-          <a href="{{ url_for('admin_reports.lineup_report_pdf') }}" class="btn btn-sm btn-primary mt-auto w-100">
-            <i class="bi bi-filetype-pdf me-1"></i> Scarica PDF
-          </a>
-        </div>
-      </div>
     </div>
-
-    <!-- Report riders attivi -->
-    <div class="col-12 col-md-6 col-lg-4">
-      <div class="card shadow-sm h-100 border-0 rounded-3">
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title text-success fw-bold">
-            <i class="bi bi-person-lines-fill me-2"></i> Riders Attivi
-          </h5>
-          <p class="card-text small text-muted flex-grow-1">
-            Esporta un elenco di tutti i riders attivi con dati anagrafici, categoria, FTP e ranking.
-          </p>
-          <a href="{{ url_for('admin_reports.riders_csv') }}" class="btn btn-sm btn-success mt-auto w-100">
-            <i class="bi bi-filetype-csv me-1"></i> Esporta CSV
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Report squadre -->
-    <div class="col-12 col-md-6 col-lg-4">
-      <div class="card shadow-sm h-100 border-0 rounded-3">
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title text-warning fw-bold">
-            <i class="bi bi-shield-fill me-2"></i> Squadre
-          </h5>
-          <p class="card-text small text-muted flex-grow-1">
-            Report completo delle squadre registrate, con numero di riders, categoria, divisione e capitano.
-          </p>
-          <a href="{{ url_for('admin_reports.teams_pdf') }}" class="btn btn-sm btn-warning mt-auto w-100">
-            <i class="bi bi-file-earmark-text me-1"></i> Scarica PDF
-          </a>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- 🔹 Footer -->
-  <div class="text-center mt-5 text-muted small">
-    Ultimo aggiornamento: {{ now().strftime('%d/%m/%Y %H:%M') }}
-  </div>
-
+  {% else %}
+    <table class="table table-sm report-table">
+      <thead>
+        <tr>
+          {% for c in columns %}
+            <th>{{ c }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            {% for c in columns %}
+              {% if c == "category" %}
+                {% set badge_class = "badge-" + row[c]|default('OTHER') %}
+                <td><span class="badge-category {{ badge_class }}">{{ row[c]|default('') }}</span></td>
+              {% else %}
+                <td>{{ row[c]|default('') }}</td>
+              {% endif %}
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
 </div>
+
 {% endblock %}

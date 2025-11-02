@@ -3,7 +3,7 @@
 # Blueprint singoli
 from .admin_dashboard import admin_panel_bp
 from .admin_manage_riders import admin_lineup_bp  # usa questo per gestione lineup/riders
-from .admin_lineup import admin_lineup_bp  # ✅ corretto: importa dal file che contiene la route
+#from .admin_lineup import admin_lineup_bp  # ✅ non c'è piu
 from .admin_races import admin_races_bp
 from .admin_teams import admin_teams_bp
 from .admin_imports import admin_imports_bp

@@ -33,10 +33,7 @@
 
   <!-- GARE -->
   <h6 class="text-muted text-uppercase small mt-3">Gare</h6>
-  <a href="{{ url_for('admin_lineup.lineup_report_all') }}"
-     class="nav-link py-2 {% if request.endpoint == 'admin_lineup.lineup_report_all' %}fw-bold text-primary{% endif %}">
-    <i class="bi bi-file-text-fill me-2 text-info"></i> Report Formazioni
-  </a>
+  
   <a href="{{ url_for('admin_races.manage_captains') }}"
      class="nav-link py-2 {% if request.endpoint == 'admin_races.manage_captains' %}fw-bold text-primary{% endif %}">
     <i class="bi bi-person-badge-fill me-2 text-info"></i> Gestione Capitani

@@ -411,3 +411,29 @@ select:focus {
   background-color: #fff3b0; /* giallo pastello */
   color: #000;
 }
+
+.category-A { color: #dc3545; font-weight: bold; }   /* Rosso */
+.category-B { color: #28a745; font-weight: bold; }   /* Verde */
+.category-C { color: #17a2b8; font-weight: bold; }   /* Azzurro */
+.category-D { color: #ffc107; font-weight: bold; }   /* Giallo */
+
+.report-table {
+  font-size: 0.85rem;
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  table-layout: fixed; /* forza larghezza uniforme */
+}
+
+.report-table th,
+.report-table td {
+  height: 28px;              /* Altezza ridotta */
+  line-height: 28px;         /* Allineamento verticale */
+  padding: 4px 8px;          /* Margini interni più piccoli */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  text-align: center;
+  border: 1px solid #dee2e6;
+}
