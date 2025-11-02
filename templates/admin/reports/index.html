@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- STILI -->
 <style>
   .report-container {
     max-width: 900px;
     margin: 0 auto;
   }
-
   .report-table {
     font-size: 0.85rem;
     width: 100%;
@@ -14,7 +14,6 @@
     margin-bottom: 1.5rem;
     table-layout: fixed;
   }
-
   .report-table th,
   .report-table td {
     padding: 4px 8px;
@@ -27,11 +26,9 @@
     white-space: nowrap;
     text-overflow: ellipsis;
   }
-
   .report-table tbody tr:nth-child(even) {
     background-color: #f9f9f9;
   }
-
   .badge-category {
     display: inline-block;
     padding: 0.25em 0.5em;
@@ -42,13 +39,11 @@
     margin: 0;
     line-height: 1;
   }
-
   .badge-A { background-color: #dc3545; }
   .badge-B { background-color: #28a745; }
   .badge-C { background-color: #17a2b8; }
   .badge-D { background-color: #ffc107; color: #212529; }
   .badge-OTHER { background-color: #6c757d; }
-
   .report-controls {
     display: flex;
     justify-content: space-between;
@@ -57,31 +52,26 @@
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-
   .filter-form {
     display: flex;
     gap: 0.5rem;
     align-items: flex-end;
     flex-wrap: wrap;
   }
-
   .lineup-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
   }
-
   .team-table {
     flex: 1 1 calc(50% - 0.5rem);
     min-width: 300px;
   }
-
   .team-table thead tr th {
     color: #fff;
     font-weight: 600;
     background-color: inherit;
   }
-
   .thead-A { background-color: #dc3545; }
   .thead-B { background-color: #28a745; }
   .thead-C { background-color: #17a2b8; }
@@ -89,6 +79,7 @@
   .thead-OTHER { background-color: #6c757d; }
 </style>
 
+<!-- CONTENUTO -->
 <div class="report-container">
   <h5 class="fw-bold mb-3">
     📊 Report Amministrativi
@@ -97,6 +88,7 @@
     {% endif %}
   </h5>
 
+  <!-- FILTRI -->
   <div class="report-controls">
     <form method="get" class="filter-form">
       <div>
@@ -105,10 +97,11 @@
           <option value="riders_compact" {% if report_type == 'riders_compact' %}selected{% endif %}>Riders Compatto</option>
           <option value="teams" {% if report_type == 'teams' %}selected{% endif %}>Teams</option>
           <option value="lineup" {% if report_type == 'lineup' %}selected{% endif %}>Lineup</option>
+          <option value="team_composition" {% if report_type == 'team_composition' %}selected{% endif %}>Composizione Team</option>
         </select>
       </div>
 
-      {% if report_type in ['riders_compact', 'lineup'] %}
+      {% if report_type in ['riders_compact', 'lineup', 'team_composition'] %}
       <div>
         <label for="category" class="form-label mb-0 small text-muted">Categoria</label>
         <select name="category" id="category" class="form-select form-select-sm">
@@ -120,18 +113,32 @@
       </div>
       {% endif %}
 
+      {% if report_type == 'team_composition' %}
+      <div>
+        <label for="team" class="form-label mb-0 small text-muted">Team</label>
+        <select name="team" id="team" class="form-select form-select-sm">
+          <option value="">Tutti</option>
+          {% for t in teams %}
+            <option value="{{ t }}" {% if t == team_filter %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
       <div>
         <button class="btn btn-primary btn-sm">Filtra</button>
       </div>
     </form>
 
+    <!-- ESPORTAZIONE -->
     <div class="export-buttons">
-      <a href="{{ url_for('admin_reports.export_report', report_type=report_type, category=category_filter, fmt='csv') }}" class="btn btn-success btn-sm">CSV</a>
-      <a href="{{ url_for('admin_reports.export_report', report_type=report_type, category=category_filter, fmt='xlsx') }}" class="btn btn-primary btn-sm">Excel</a>
-      <a href="{{ url_for('admin_reports.export_report', report_type=report_type, category=category_filter, fmt='pdf') }}" class="btn btn-danger btn-sm">PDF</a>
+      <a href="{{ url_for('admin_reports.export_report', report_type=report_type, category=category_filter, team=team_filter, fmt='csv') }}" class="btn btn-success btn-sm">CSV</a>
+      <a href="{{ url_for('admin_reports.export_report', report_type=report_type, category=category_filter, team=team_filter, fmt='xlsx') }}" class="btn btn-primary btn-sm">Excel</a>
+      <a href="{{ url_for('admin_reports.export_report', report_type=report_type, category=category_filter, team=team_filter, fmt='pdf') }}" class="btn btn-danger btn-sm">PDF</a>
     </div>
   </div>
 
+  <!-- VISUALIZZAZIONE -->
   {% if report_type == 'lineup' %}
     <div class="lineup-grid">
       {% for team, riders in lineup_per_team.items() %}
@@ -164,7 +171,41 @@
         </div>
       {% endfor %}
     </div>
-  {% else %}
+
+  {% elif report_type == 'team_composition' %}
+    <div class="lineup-grid">
+      {% for team, riders in lineup_per_team.items() %}
+        {% set rider_list = riders|list %}
+        {% set team_category = rider_list[0].category|default('OTHER') if rider_list|length > 0 else 'OTHER' %}
+        {% set header_class = "thead-" + team_category %}
+        <div class="team-table">
+          <h6 class="fw-bold">{{ team }}</h6>
+          <table class="table table-sm report-table">
+            <thead>
+              <tr class="{{ header_class }}">
+                <th>Rider</th>
+                <th>Categoria</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for i in range(12) %}
+                <tr>
+                  {% if rider_list[i] is defined %}
+                    <td>{{ rider_list[i].rider_name }}</td>
+                    <td><span class="badge-category badge-{{ rider_list[i].category|default('OTHER') }}">{{ rider_list[i].category|default('') }}</span></td>
+                  {% else %}
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                  {% endif %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
     <table class="table table-sm report-table">
       <thead>
         <tr>
@@ -192,3 +233,4 @@
 </div>
 
 {% endblock %}
+           

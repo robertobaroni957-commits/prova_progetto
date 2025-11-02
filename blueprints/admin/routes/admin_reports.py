@@ -14,16 +14,23 @@ except locale.Error:
     except locale.Error:
         locale.setlocale(locale.LC_TIME, "")  # fallback al locale di default
 
-
 admin_reports_bp = Blueprint("admin_reports", __name__, url_prefix="/admin/reports")
 
 @admin_reports_bp.route("/")
 def index():
     report_type = request.args.get("report_type", "riders_compact")
-    category_filter = request.args.get("category", "").strip().upper()
+    category_filter = (request.args.get("category") or "").strip().upper()
+    team_filter = (request.args.get("team") or "").strip()
 
     conn = get_db()
-    categories = [r["category"] for r in conn.execute("SELECT DISTINCT category FROM riders WHERE active=1").fetchall()]
+    # elenco categorie e teams per i select
+    categories = [r["category"] for r in conn.execute(
+        "SELECT DISTINCT category FROM riders WHERE active=1"
+    ).fetchall()]
+    teams_list = [r["name"] for r in conn.execute(
+        "SELECT DISTINCT name FROM teams"
+    ).fetchall()]
+
     rows, columns, lineup_per_team = [], [], {}
     race_date = None
 
@@ -33,7 +40,7 @@ def index():
                 r.zwift_power_id,
                 r.name,
                 TRIM(UPPER(r.category)) AS category,
-                GROUP_CONCAT(DISTINCT t.name) AS teams
+                COALESCE(GROUP_CONCAT(DISTINCT t.name), '') AS teams
             FROM riders r
             LEFT JOIN rider_teams rt ON r.zwift_power_id = rt.zwift_power_id
             LEFT JOIN teams t ON t.id = rt.team_id
@@ -46,20 +53,21 @@ def index():
         query += " GROUP BY r.zwift_power_id, r.name, r.category ORDER BY r.category, r.name"
 
         df = pd.read_sql_query(query, conn, params=params)
-        df["teams"] = df["teams"].fillna("").replace("None", "")
+        # riempi i valori nulli e cast a stringa
+        for col in ["zwift_power_id", "name", "category", "teams"]:
+            df[col] = df[col].fillna("").astype(str).str.strip()
         split_teams = df["teams"].str.split(",", n=1, expand=True)
         df["team1"] = split_teams[0].fillna("").str.strip()
         df["team2"] = split_teams[1].fillna("").str.strip() if 1 in split_teams.columns else ""
-        for col in ["zwift_power_id", "name", "category"]:
-            df[col] = df[col].fillna("").astype(str).str.strip()
         df = df[["zwift_power_id", "name", "category", "team1", "team2"]]
+
         rows = df.to_dict(orient="records")
         columns = list(df.columns)
 
     elif report_type == "teams":
         query = """
             SELECT t.name AS team, t.category, COUNT(r.zwift_power_id) AS n_riders,
-                   r2.name AS captain
+                   COALESCE(r2.name, '') AS captain
             FROM teams t
             LEFT JOIN riders r ON r.team_id = t.id AND r.active=1
             LEFT JOIN riders r2 ON r2.zwift_power_id = t.captain_zwift_id
@@ -70,7 +78,7 @@ def index():
 
     elif report_type == "lineup":
         query = """
-            SELECT t.name AS team, r.name, r.category, rl.race_date
+            SELECT t.name AS team, r.name AS rider, TRIM(UPPER(r.category)) AS category, rl.race_date
             FROM race_lineup rl
             JOIN riders r ON r.zwift_power_id = rl.zwift_power_id
             JOIN teams t ON t.id = rl.team_id
@@ -82,21 +90,53 @@ def index():
             params.append(category_filter)
         query += " ORDER BY t.name, r.name"
         rows = [dict(r) for r in conn.execute(query, params).fetchall()]
+
+        # raggruppa per team
         lineup_per_team = {}
         for r in rows:
-            team = r["team"]
-            if team not in lineup_per_team:
-                lineup_per_team[team] = []
-            lineup_per_team[team].append(r)
+            team = r.get("team") or "Senza Team"
+            r["rider"] = r.get("rider") or ""
+            r["category"] = r.get("category") or "OTHER"
+            r["race_date"] = r.get("race_date") or ""
+            lineup_per_team.setdefault(team, []).append(r)
+
         if rows:
             try:
                 race_date = datetime.datetime.strptime(rows[0]["race_date"], "%Y-%m-%d").strftime("%d %B %Y")
-            except:
+            except Exception:
                 race_date = rows[0]["race_date"]
+
+    elif report_type == "team_composition":
+        query = """
+            SELECT t.name AS team_name, r.name AS rider_name, TRIM(UPPER(r.category)) AS category
+            FROM teams t
+            LEFT JOIN rider_teams rt ON rt.team_id = t.id
+            LEFT JOIN riders r 
+                ON r.zwift_power_id = rt.zwift_power_id AND r.active = 1
+            WHERE 1=1
+        """
+        params = []
+        if category_filter:
+            query += " AND TRIM(UPPER(r.category)) = ?"
+            params.append(category_filter)
+        if team_filter:
+            query += " AND t.name = ?"
+            params.append(team_filter)
+        query += " ORDER BY t.name, r.name"
+
+        rows = [dict(r) for r in conn.execute(query, params).fetchall()]
+
+        # raggruppa per team
+        lineup_per_team = {}
+        for r in rows:
+            team = r.get("team_name") or "Senza Team"
+            r["rider_name"] = r.get("rider_name") or ""
+            r["category"] = r.get("category") or "OTHER"
+            lineup_per_team.setdefault(team, []).append(r)
 
     else:
         flash("Tipo di report non valido", "danger")
-
+    
     conn.close()
     return render_template(
         "admin/reports/index.html",
@@ -104,10 +144,14 @@ def index():
         rows=rows,
         columns=columns,
         categories=categories,
+        teams=teams_list,
         category_filter=category_filter,
-        lineup_per_team=lineup_per_team if report_type == "lineup" else None,
+        team_filter=team_filter,
+        lineup_per_team=lineup_per_team if report_type in ["lineup", "team_composition"] else None,
         race_date=race_date
     )
+
+
 
 @admin_reports_bp.route("/export")
 def export_report():
@@ -123,6 +167,7 @@ def export_report():
     report_type = request.args.get("report_type", "riders_compact")
     fmt = request.args.get("fmt", "csv")
     category_filter = request.args.get("category", "").strip().upper()
+    team_filter = request.args.get("team", "").strip()
 
     conn = get_db()
     df = pd.DataFrame()
@@ -152,6 +197,20 @@ def export_report():
         df["team2"] = split_teams[1].fillna("").str.strip() if 1 in split_teams.columns else ""
         df = df[["zwift_power_id", "name", "category", "team1", "team2"]]
 
+    elif report_type == "team_composition":
+        query = """
+            SELECT 
+                t.name AS team_name,
+                r.name AS rider_name,
+                TRIM(UPPER(r.category)) AS category
+            FROM teams t
+            LEFT JOIN rider_teams rt ON rt.team_id = t.id
+            LEFT JOIN riders r ON r.zwift_power_id = rt.zwift_power_id AND r.active = 1
+            ORDER BY t.name, r.name
+        """
+        df = pd.read_sql_query(query, conn)
+   
+
     elif report_type == "teams":
         query = """
             SELECT t.name AS team, t.category, COUNT(r.zwift_power_id) AS n_riders,
@@ -177,6 +236,31 @@ def export_report():
             params.append(category_filter)
         query += " ORDER BY t.name, r.name"
         df = pd.read_sql_query(query, conn, params=params)
+
+    elif report_type == "team_composition":
+        query = """
+            SELECT 
+                t.name AS team_name,
+                r.name AS rider_name,
+                TRIM(UPPER(r.category)) AS category
+            FROM teams t
+            LEFT JOIN rider_teams rt ON rt.team_id = t.id
+            LEFT JOIN riders r 
+                ON r.zwift_power_id = rt.zwift_power_id 
+                AND r.active = 1
+            WHERE 1=1
+        """
+        params = []
+        if category_filter:
+            query += " AND TRIM(UPPER(r.category)) = ?"
+            params.append(category_filter)
+        if team_filter:
+            query += " AND t.name = ?"
+            params.append(team_filter)
+        query += " ORDER BY t.name, r.name"
+
+        df = pd.read_sql_query(query, conn, params=params)
+
 
     else:
         flash("Tipo di report non valido", "danger")
@@ -320,6 +404,62 @@ def export_report():
                 total = group["n_riders"].sum()
                 elements.append(Paragraph(f"<i>Totale rider: {total}</i>", styles["Normal"]))
                 elements.append(Spacer(1, 4))
+
+        elif report_type == "team_composition":
+            title = "Composizione Team"
+            elements.append(Paragraph(f"📋 {title}", styles["Title"]))
+            elements.append(Paragraph(f"Generato il {datetime.datetime.now():%d %B %Y %H:%M}", styles["Normal"]))
+            elements.append(Spacer(1, 12))
+
+            grouped = df.groupby("team_name")
+            team_blocks = []
+
+            for team, group in grouped:
+                riders = group.to_dict(orient="records")
+                cat = riders[0]["category"] if riders else "OTHER"
+                header_color = color_map.get(cat, colors.HexColor("#6c757d"))
+                emoji = emoji_map.get(cat, "⚫")
+
+                team_title = Paragraph(f"<b>{team}</b>", styles["Heading4"])
+                data = [["Rider", "Categoria"]]
+
+        # 12 righe fisse
+                for i in range(12):
+                    if i < len(riders):
+                        r = riders[i]
+                        categoria = f"{emoji} {r['category']}" if r.get("category") else ""
+                        data.append([r["rider_name"], categoria])
+                    else:
+                        data.append(["", ""])
+
+                table = Table(data, colWidths=[200, 100], hAlign="LEFT")
+                table.setStyle(TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, 0), header_color),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTSIZE", (0, 0), (-1, -1), 8),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+                    ("ROWHEIGHT", (1, 0), (-1, -1), 18),
+                ]))
+                team_blocks.append([team_title, table])
+
+    # Tabelle 2 per riga
+            for i in range(0, len(team_blocks), 2):
+                row = []
+                for j in range(2):
+                    if i + j < len(team_blocks):
+                        row.append(team_blocks[i + j])
+                    else:
+                        row.append([Spacer(1, 0), Spacer(1, 0)])
+                layout = Table([[row[0], row[1]]], colWidths=[270, 270])
+                layout.setStyle(TableStyle([
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 6)
+                ]))
+                elements.append(layout)
+                elements.append(Spacer(1, 12))
+        
 
         else:
             # altri report PDF (riders)
