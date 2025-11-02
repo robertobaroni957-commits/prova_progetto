@@ -240,12 +240,17 @@ def export_report():
 
     elif report_type == "teams":
         query = """
-            SELECT t.name AS team, t.category, COUNT(r.zwift_power_id) AS n_riders,
-                   r2.name AS captain
+            SELECT 
+                t.name AS team, 
+                t.category, 
+                COUNT(rt.zwift_power_id) AS n_riders,
+                COALESCE(r2.name, '') AS captain
             FROM teams t
-            LEFT JOIN riders r ON r.team_id = t.id AND r.active=1
+            LEFT JOIN rider_teams rt ON rt.team_id = t.id
+            LEFT JOIN riders r ON r.zwift_power_id = rt.zwift_power_id AND r.active = 1
             LEFT JOIN riders r2 ON r2.zwift_power_id = t.captain_zwift_id
             GROUP BY t.id
+            ORDER BY t.category, t.name
         """
         df = pd.read_sql_query(query, conn)
 

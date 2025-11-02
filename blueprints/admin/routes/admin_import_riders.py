@@ -137,21 +137,21 @@ def import_zrl_riders():
                 updated_riders += 1
             else:
                 cur.execute("""
-                    INSERT INTO riders (
-                        zwift_power_id, name, category, ranking,
-                        wkg_20min, watt_20min, wkg_15sec, watt_15sec,
-                        status, races, weight, ftp, age, country, profile_url,
-                        team_id, available_zrl, is_captain, email, password,
-                        active, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    rider["zwift_power_id"], rider["name"], rider["category"], rider["ranking"],
-                    rider["wkg_20min"], rider["watt_20min"], rider["wkg_15sec"], rider["watt_15sec"],
-                    rider["status"], rider["races"], rider["weight"], rider["ftp"], rider["age"],
-                    rider.get("country",""), rider.get("profile_url",""),
-                    None, 1, 0, "", "", 1, datetime.datetime.now().strftime("%Y-%m-%d")
-                ))
-                new_riders += 1
+                INSERT INTO riders (
+                    zwift_power_id, name, category, ranking,
+                    wkg_20min, watt_20min, wkg_15sec, watt_15sec,
+                    status, races, weight, ftp, age, country, profile_url,
+                    available_zrl, is_captain, email, password,
+                    active, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                rider["zwift_power_id"], rider["name"], rider["category"], rider["ranking"],
+                rider["wkg_20min"], rider["watt_20min"], rider["wkg_15sec"], rider["watt_15sec"],
+                rider["status"], rider["races"], rider["weight"], rider["ftp"], rider["age"],
+                rider.get("country",""), rider.get("profile_url",""),
+                1, 0, "", "", 1, datetime.datetime.now().strftime("%Y-%m-%d")
+            ))
+            new_riders += 1
 
         conn.commit()
         conn.close()
