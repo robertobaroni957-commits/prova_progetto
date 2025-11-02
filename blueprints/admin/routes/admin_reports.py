@@ -5,11 +5,15 @@ import io
 import datetime
 import locale
 
-# Imposta la localizzazione italiana per la data
+# Imposta la localizzazione italiana per la data, con fallback sicuro
 try:
     locale.setlocale(locale.LC_TIME, "it_IT.UTF-8")
 except locale.Error:
-    locale.setlocale(locale.LC_TIME, "it_IT")
+    try:
+        locale.setlocale(locale.LC_TIME, "it_IT")
+    except locale.Error:
+        locale.setlocale(locale.LC_TIME, "")  # fallback al locale di default
+
 
 admin_reports_bp = Blueprint("admin_reports", __name__, url_prefix="/admin/reports")
 
