@@ -342,102 +342,90 @@ def manage_captains():
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
 
+    # Recupero la gara selezionata (ad esempio la prossima)
+    selected_race = cur.execute("""
+        SELECT * FROM races
+        WHERE active = 1
+        ORDER BY race_date ASC
+        LIMIT 1
+    """).fetchone()
+    selected_race_date = selected_race["race_date"] if selected_race else "N/D"
+
     if request.method == "POST":
         action = request.form.get("action")
         team_id = request.form.get("team_id")
         zwift_power_id = request.form.get("zwift_power_id")
 
-        # 🔎 Verifica rider esistente
-        rider = cur.execute(
-            "SELECT * FROM riders WHERE zwift_power_id = ?",
-            (zwift_power_id,)
-        ).fetchone()
-
-        if not rider:
-            flash("❌ Rider non trovato", "danger")
-            return redirect(url_for("admin_races.manage_captains"))
-
-        if action == "assign_captain":
-            # 👑 Inserisce o aggiorna il capitano nella tabella captains
+        if action == "assign_captain" and team_id and zwift_power_id:
+            # Rimuovo eventuale capitano precedente del team
             cur.execute("""
-                INSERT INTO captains (zwift_power_id, name, team_id)
-                VALUES (?, ?, ?)
-                ON CONFLICT(zwift_power_id) DO UPDATE SET
-                    team_id = excluded.team_id,
-                    name = excluded.name
-            """, (zwift_power_id, rider["name"], team_id))
+                UPDATE riders
+                SET is_captain = 0
+                WHERE zwift_power_id IN (
+                    SELECT zwift_power_id FROM rider_teams WHERE team_id = ?
+                )
+            """, (team_id,))
+            
+            # Imposto nuovo capitano
+            cur.execute("UPDATE riders SET is_captain = 1 WHERE zwift_power_id = ?", (zwift_power_id,))
+            cur.execute("UPDATE teams SET captain_zwift_id = ? WHERE id = ?", (zwift_power_id, team_id))
 
-            # 🔄 Aggiorna il campo captain_zwift_id nella tabella teams
+            # 🔹 Inserimento o aggiornamento nella tabella captains
             cur.execute("""
-                UPDATE teams
-                SET captain_zwift_id = ?
-                WHERE id = ?
-            """, (zwift_power_id, team_id))
-
-            # ✅ Aggiorna is_captain = 1 per il rider selezionato
-            cur.execute("""
-                UPDATE riders SET is_captain = 1 WHERE zwift_power_id = ?
-            """, (zwift_power_id,))
-
-            # 🔁 Azzera is_captain per gli altri rider dello stesso team
-            cur.execute("""
-                UPDATE riders SET is_captain = 0
-                WHERE team_id = ? AND zwift_power_id != ?
+                INSERT INTO captains (team_id, zwift_power_id, active)
+                VALUES (?, ?, 1)
+                ON CONFLICT(team_id, zwift_power_id)
+                DO UPDATE SET active = 1
             """, (team_id, zwift_power_id))
 
-            conn.commit()
-            flash("✅ Capitano assegnato correttamente", "success")
+            flash("🧢 Capitano assegnato con successo!", "success")
 
-        elif action == "remove_captain":
-            # 🗑️ Rimuove il capitano dalla tabella captains
-            cur.execute(
-                "DELETE FROM captains WHERE zwift_power_id = ?",
-                (zwift_power_id,)
-            )
+        elif action == "remove_captain" and zwift_power_id:
+            cur.execute("UPDATE riders SET is_captain = 0 WHERE zwift_power_id = ?", (zwift_power_id,))
+            cur.execute("UPDATE teams SET captain_zwift_id = NULL WHERE captain_zwift_id = ?", (zwift_power_id,))
+            cur.execute("UPDATE captains SET active = 0 WHERE zwift_power_id = ?", (zwift_power_id,))
+            flash("🧢 Capitano rimosso", "info")
 
-            # 🔄 Rimuove il riferimento da teams
-            cur.execute("""
-                UPDATE teams
-                SET captain_zwift_id = NULL
-                WHERE captain_zwift_id = ?
-            """, (zwift_power_id,))
+        conn.commit()
+        return redirect(url_for("admin_races.manage_captains"))
 
-            # 🔁 Azzera is_captain per il rider rimosso
-            cur.execute("""
-                UPDATE riders SET is_captain = 0 WHERE zwift_power_id = ?
-            """, (zwift_power_id,))
+    # GET: selezione team per filtro
+    selected_team_id = request.args.get("team_id", type=int)
 
-            conn.commit()
-            flash("🗑️ Capitano rimosso correttamente", "warning")
-
-    # 📋 Dati per il rendering
-    available_teams = cur.execute("SELECT * FROM teams ORDER BY name").fetchall()
-
-    unassigned_riders = cur.execute("""
-    SELECT *
-    FROM riders
-    WHERE active = 1
-      AND zwift_power_id NOT IN (
-          SELECT zwift_power_id FROM captains
-      )
-    ORDER BY name
-""").fetchall()
-
-    current_captains = cur.execute("""
-        SELECT c.zwift_power_id, c.name AS rider_name, t.name AS team_name
-        FROM captains c
-        JOIN teams t ON c.team_id = t.id
+    # Teams disponibili
+    available_teams = cur.execute("""
+        SELECT t.id, t.name
+        FROM teams t
         ORDER BY t.name
     """).fetchall()
 
-    selected_race_date = cur.execute("""
-        SELECT MIN(race_date) FROM races WHERE race_date >= DATE('now')
-    """).fetchone()[0]
+    # Rider disponibili solo per il team selezionato e non ancora capitani
+    if selected_team_id:
+        unassigned_riders = cur.execute("""
+            SELECT r.zwift_power_id, r.name
+            FROM riders r
+            JOIN rider_teams rt ON r.zwift_power_id = rt.zwift_power_id
+            WHERE r.is_captain = 0 AND rt.team_id = ?
+            ORDER BY r.name
+        """, (selected_team_id,)).fetchall()
+    else:
+        unassigned_riders = []
+
+    # Capitani attuali
+    current_captains = cur.execute("""
+        SELECT t.name AS team_name, r.name AS rider_name, r.zwift_power_id
+        FROM teams t
+        JOIN riders r ON t.captain_zwift_id = r.zwift_power_id
+        ORDER BY t.name
+    """).fetchall()
 
     conn.close()
 
-    return render_template("admin/manage_captains.html",
-                           available_teams=available_teams,
-                           unassigned_riders=unassigned_riders,
-                           current_captains=current_captains,
-                           selected_race_date=selected_race_date)
+    return render_template(
+        "admin/manage_captains.html",
+        selected_race_date=selected_race_date,
+        available_teams=available_teams,
+        unassigned_riders=unassigned_riders,
+        current_captains=current_captains,
+        selected_team_id=selected_team_id
+    )

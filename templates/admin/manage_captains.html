@@ -3,50 +3,84 @@
 {% block title %}Gestione Capitani{% endblock %}
 {% block page_title %}Gestione Capitani – Gara del {{ selected_race_date }}{% endblock %}
 
+{% block head %}
+<style>
+  /* Stili generali */
+  .card-header {
+    font-weight: bold;
+    font-size: 1rem;
+  }
+
+  .form-select, .btn {
+    font-size: 0.9rem;
+  }
+
+  table th, table td {
+    vertical-align: middle !important;
+    text-align: center;
+  }
+
+  table th:first-child, table td:first-child {
+    text-align: left;
+  }
+
+  .mt-2 { margin-top: 0.5rem; }
+  .mt-3 { margin-top: 1rem; }
+  .mb-3 { margin-bottom: 1rem; }
+  .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+  .table-hover tbody tr:hover { background-color: #f0f8ff; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row g-4">
-  <!-- Colonna Sinistra -->
+  <!-- Colonna Sinistra: Promuovi Capitano -->
   <div class="col-md-6">
     <div class="card shadow-sm">
       <div class="card-header bg-warning text-dark">🔼 Promuovi Capitano</div>
       <div class="card-body">
-        <form method="POST" action="{{ url_for('admin_races.manage_captains') }}">
-          <input type="hidden" name="action" value="assign_captain">
-
+        <!-- Selezione Team -->
+        <form method="GET" action="{{ url_for('admin_races.manage_captains') }}">
           <div class="mb-3">
             <label for="team_id" class="form-label">Team:</label>
-            <select name="team_id" id="team_id" class="form-select" required>
+            <select name="team_id" id="team_id" class="form-select" onchange="this.form.submit()">
               <option value="">-- Seleziona team --</option>
               {% for team in available_teams %}
-                <option value="{{ team.id }}">{{ team.name }}</option>
+                <option value="{{ team.id }}" {% if team.id == selected_team_id %}selected{% endif %}>{{ team.name }}</option>
               {% endfor %}
             </select>
           </div>
+        </form>
+
+        <!-- Selezione Rider -->
+        {% if selected_team_id %}
+        <form method="POST" action="{{ url_for('admin_races.manage_captains') }}">
+          <input type="hidden" name="action" value="assign_captain">
+          <input type="hidden" name="team_id" value="{{ selected_team_id }}">
 
           <div class="mb-3">
             <label for="zwift_power_id" class="form-label">Rider:</label>
             <select name="zwift_power_id" id="zwift_power_id" class="form-select" required>
               <option value="">-- Seleziona rider --</option>
               {% for rider in unassigned_riders %}
-                <option value="{{ rider.zwift_power_id }}">
-                  {{ rider.name }} (ZwiftPower ID: {{ rider.zwift_power_id }})
-                </option>
+                <option value="{{ rider.zwift_power_id }}">{{ rider.name }}</option>
               {% endfor %}
             </select>
           </div>
 
-          <button class="btn btn-success w-100">👑 Promuovi Capitano</button>
+          <button type="submit" class="btn btn-success w-100">👑 Promuovi Capitano</button>
         </form>
+        {% endif %}
       </div>
     </div>
   </div>
 
-  <!-- Colonna Destra -->
+  <!-- Colonna Destra: Capitani Attuali -->
   <div class="col-md-6">
     <div class="card shadow-sm">
       <div class="card-header bg-secondary text-white">👑 Capitani Attuali</div>
       <div class="card-body">
-        <table class="table table-sm table-bordered align-middle text-center">
+        <table class="table table-sm table-bordered table-hover align-middle">
           <thead class="table-light">
             <tr>
               <th>Team</th>
@@ -56,18 +90,23 @@
           </thead>
           <tbody>
             {% for captain in current_captains %}
-              <tr>
-                <td>{{ captain.team_name }}</td>
-                <td>{{ captain.rider_name }}</td>
-                <td>
-                  <form method="POST" action="{{ url_for("admin_races.manage_captains") }}" onsubmit="return confirm('Sei sicuro di voler rimuovere questo capitano?');">
-                    <input type="hidden" name="action" value="remove_captain">
-                    <input type="hidden" name="zwift_power_id" value="{{ captain.zwift_power_id }}">
-                    <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
-                  </form>
-                </td>
-              </tr>
+            <tr>
+              <td>{{ captain.team_name }}</td>
+              <td>{{ captain.rider_name }}</td>
+              <td>
+                <form method="POST" action="{{ url_for("admin_races.manage_captains") }}" onsubmit="return confirm('Rimuovere questo capitano?');">
+                  <input type="hidden" name="action" value="remove_captain">
+                  <input type="hidden" name="zwift_power_id" value="{{ captain.zwift_power_id }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
+                </form>
+              </td>
+            </tr>
             {% endfor %}
+            {% if current_captains|length == 0 %}
+            <tr>
+              <td colspan="3">Nessun capitano assegnato</td>
+            </tr>
+            {% endif %}
           </tbody>
         </table>
       </div>
@@ -75,13 +114,14 @@
   </div>
 </div>
 
+<!-- Messaggi di flash -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    <div class="alert mt-4">
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">{{ message }}</div>
-      {% endfor %}
-    </div>
+  <div class="mt-4">
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  </div>
   {% endif %}
 {% endwith %}
 {% endblock %}

@@ -20,6 +20,7 @@ from routes.seasons import seasons_bp
 # Blueprint admin modulari (centralizzati)
 from blueprints.admin.routes import all_blueprints as admin_blueprints
 from blueprints.ai_lineup import ai_lineup_bp
+from blueprints.admin.routes.admin_leagues import admin_leagues_bp
 
 def create_app():
     app = Flask(__name__, static_folder="static", template_folder="templates")
@@ -34,10 +35,12 @@ def create_app():
     app.register_blueprint(debug_bp)
     app.register_blueprint(ai_lineup_bp)
     app.register_blueprint(admin_reports_bp, url_prefix="/admin/reports")
+    app.register_blueprint(admin_leagues_bp)
     
     # 🔧 Blueprint admin modulari
     for bp in admin_blueprints:
         app.register_blueprint(bp)
+
 
     # 🔧 Blueprint captain
     for bp in captain_blueprints:

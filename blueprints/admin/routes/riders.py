@@ -22,7 +22,8 @@ def manage_available_riders():
             return redirect(url_for("admin_riders.manage_available_riders"))
 
         for rider_id in rider_ids:
-            cur.execute("UPDATE riders SET active = ? WHERE id = ?", (1 if action == "activate" else 0, rider_id))
+            cur.execute("UPDATE riders SET active = ? WHERE zwift_power_id = ?", 
+                        (1 if action == "activate" else 0, rider_id))
 
         conn.commit()
         flash(f"{len(rider_ids)} rider {'attivati' if action == 'activate' else 'disattivati'}", "success")
@@ -33,9 +34,11 @@ def manage_available_riders():
     selected_team = request.args.get("team_id")
 
     query = """
-        SELECT r.zwift_power_id, r.name, r.active, r.category, r.age, r.ftp, r.team_id
+        SELECT r.zwift_power_id, r.name, r.active, r.category, r.age, r.ftp,
+               rt.team_id
         FROM riders r
-        WHERE 1 = 1
+        LEFT JOIN rider_teams rt ON r.zwift_power_id = rt.zwift_power_id
+        WHERE 1=1
     """
     params = []
 
@@ -44,7 +47,7 @@ def manage_available_riders():
         params.append(selected_category)
 
     if selected_team:
-        query += " AND r.team_id = ?"
+        query += " AND rt.team_id = ?"
         params.append(selected_team)
 
     query += " ORDER BY r.name"
@@ -52,13 +55,24 @@ def manage_available_riders():
     riders = cur.execute(query, params).fetchall()
 
     # 📦 Recupero categorie e team per i filtri
-    categories = cur.execute("SELECT DISTINCT category FROM riders WHERE category IS NOT NULL ORDER BY category").fetchall()
-    teams = cur.execute("SELECT DISTINCT team_id FROM riders WHERE team_id IS NOT NULL ORDER BY team_id").fetchall()
+    categories = cur.execute(
+        "SELECT DISTINCT category FROM riders WHERE category IS NOT NULL ORDER BY category"
+    ).fetchall()
+    
+    teams = cur.execute(
+        """SELECT t.id, t.name
+           FROM teams t
+           JOIN rider_teams rt ON t.id = rt.team_id
+           GROUP BY t.id, t.name
+           ORDER BY t.name"""
+    ).fetchall()
 
     conn.close()
-    return render_template("admin/manage_available_riders.html",
-                           riders=riders,
-                           categories=categories,
-                           teams=teams,
-                           selected_category=selected_category,
-                           selected_team=selected_team)
+    return render_template(
+        "admin/manage_available_riders.html",
+        riders=riders,
+        categories=categories,
+        teams=teams,
+        selected_category=selected_category,
+        selected_team=selected_team
+    )

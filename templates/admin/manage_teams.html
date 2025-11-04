@@ -10,39 +10,56 @@
   <div class="card-body">
     <form method="POST" action="{{ url_for('admin_teams.manage_teams') }}">
       <input type="hidden" name="action" value="create">
-      <div class="row g-3">
-        <div class="col-md-4">
+      <div class="row g-2 align-items-end">
+        <div class="col-auto">
           <label for="name" class="form-label">Nome Team:</label>
-          <input type="text" name="name" id="name" class="form-control" required>
+          <input type="text" name="name" id="name" class="form-control form-control-sm" required>
         </div>
-        <div class="col-md-2">
+        <div class="col-auto">
           <label for="category" class="form-label">Categoria:</label>
-          <select name="category" id="category" class="form-select" required>
-            {% for cat in ['A', 'B', 'C', 'D'] %}
+          <select name="category" id="category" class="form-select form-select-sm" required>
+            {% for cat in ['A','B','C','D'] %}
               <option value="{{ cat }}">{{ cat }}</option>
             {% endfor %}
           </select>
         </div>
-        <div class="col-md-2">
+        <div class="col-auto">
           <label for="division" class="form-label">Divisione:</label>
-          <select name="division" id="division" class="form-select" required>
-            {% for div in ['1', '2', '3'] %}
+          <select name="division" id="division" class="form-select form-select-sm" required>
+            {% for div in ['1','2','3','4'] %}
               <option value="{{ div }}">{{ div }}</option>
             {% endfor %}
           </select>
         </div>
-        <div class="col-md-4">
+        <div class="col-auto">
+          <label for="division_number" class="form-label">N. Divisione:</label>
+          <select name="division_number" id="division_number" class="form-select form-select-sm">
+            {% for num in ['1','2','3','4'] %}
+              <option value="{{ num }}">{{ num }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-auto">
+          <label for="league_id" class="form-label">League:</label>
+          <select name="league_id" id="league_id" class="form-select form-select-sm">
+            <option value="">-- Nessuna --</option>
+            {% for league in leagues %}
+              <option value="{{ league.id }}">{{ league.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-auto">
           <label for="captain_id" class="form-label">Capitano:</label>
-          <select name="captain_id" id="captain_id" class="form-select">
+          <select name="captain_id" id="captain_id" class="form-select form-select-sm">
             <option value="">-- Nessuno --</option>
-            {% for rider in riders %}
+            {% for rider in captains %}
               <option value="{{ rider.zwift_power_id }}">{{ rider.name }}</option>
             {% endfor %}
           </select>
         </div>
-      </div>
-      <div class="text-end mt-3">
-        <button type="submit" class="btn btn-success">➕ Aggiungi Team</button>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-success btn-sm">➕ Aggiungi Team</button>
+        </div>
       </div>
     </form>
   </div>
@@ -52,13 +69,15 @@
 <div class="card shadow-sm">
   <div class="card-header bg-secondary text-white">📋 Team Esistenti</div>
   <div class="card-body">
-    <table class="table table-bordered table-sm align-middle">
+    <table class="table table-bordered table-sm align-middle mb-0">
       <thead class="table-light">
         <tr>
           <th>Nome</th>
-          <th>Categoria</th>
-          <th>Divisione</th>
-          <th>Capitano Attuale</th>
+          <th>Cat.</th>
+          <th>Div.</th>
+          <th>N. Div.</th>
+          <th>League</th>
+          <th>Capitano</th>
           <th>Modifica Capitano</th>
           <th>Gestione</th>
           <th>Salva</th>
@@ -71,44 +90,54 @@
           <form method="POST" action="{{ url_for('admin_teams.manage_teams') }}">
             <input type="hidden" name="action" value="update">
             <input type="hidden" name="team_id" value="{{ team.id }}">
-            <td><input type="text" name="name" value="{{ team.name }}" class="form-control" required></td>
+            <td><input type="text" name="name" value="{{ team.name }}" class="form-control form-control-sm" required></td>
             <td>
-              <select name="category" class="form-select" required>
-                {% for cat in ['A', 'B', 'C', 'D'] %}
+              <select name="category" class="form-select form-select-sm" required>
+                {% for cat in ['A','B','C','D'] %}
                   <option value="{{ cat }}" {% if team.category == cat %}selected{% endif %}>{{ cat }}</option>
                 {% endfor %}
               </select>
             </td>
             <td>
-              <select name="division" class="form-select" required>
-                {% for div in ['1', '2', '3'] %}
+              <select name="division" class="form-select form-select-sm" required>
+                {% for div in ['1','2','3','4'] %}
                   <option value="{{ div }}" {% if team.division == div %}selected{% endif %}>{{ div }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td>
+              <select name="division_number" class="form-select form-select-sm">
+                {% for num in ['1','2','3','4'] %}
+                  <option value="{{ num }}" {% if team.division_number == num %}selected{% endif %}>{{ num }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td>
+              <select name="league_id" class="form-select form-select-sm">
+                <option value="">-- Nessuna --</option>
+                {% for league in leagues %}
+                  <option value="{{ league.id }}" {% if team.league_id == league.id %}selected{% endif %}>{{ league.name }}</option>
                 {% endfor %}
               </select>
             </td>
             <td>{{ team.captain_name or '—' }}</td>
             <td>
-              <select name="captain_id" class="form-select">
+              <select name="captain_id" class="form-select form-select-sm">
                 <option value="">-- Nessuno --</option>
-                {% for rider in riders %}
-                  <option value="{{ rider.zwift_power_id }}"
-        {% if rider.zwift_power_id == team.captain_zwift_id %}selected{% endif %}>
-  {{ rider.name }}
-</option>
+                {% for rider in captains %}
+                  <option value="{{ rider.zwift_power_id }}" {% if rider.zwift_power_id == team.captain_zwift_id %}selected{% endif %}>{{ rider.name }}</option>
                 {% endfor %}
               </select>
             </td>
             <td>
-              <a href="{{ url_for('admin_teams.manage_team_members', team_id=team.id) }}"
-                 class="btn btn-outline-primary btn-sm">👥 Gestisci</a>
+              <a href="{{ url_for('admin_teams.manage_team_members', team_id=team.id) }}" class="btn btn-outline-primary btn-sm">👥 Gestisci</a>
             </td>
             <td>
               <button type="submit" class="btn btn-outline-success btn-sm">💾</button>
             </td>
           </form>
           <td>
-            <form method="POST" action="{{ url_for('admin_teams.manage_teams') }}"
-                  onsubmit="return confirm('Eliminare il team {{ team.name }}?');">
+            <form method="POST" action="{{ url_for('admin_teams.manage_teams') }}" onsubmit="return confirm('Eliminare il team {{ team.name }}?');">
               <input type="hidden" name="action" value="delete">
               <input type="hidden" name="team_id" value="{{ team.id }}">
               <button type="submit" class="btn btn-outline-danger btn-sm">🗑️</button>

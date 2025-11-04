@@ -4,19 +4,19 @@
 <!-- STILI -->
 <style>
   .report-container {
-    max-width: 900px;
+    max-width: 950px;
     margin: 0 auto;
   }
   .report-table {
     font-size: 0.85rem;
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     table-layout: fixed;
   }
   .report-table th,
   .report-table td {
-    padding: 4px 8px;
+    padding: 4px 6px;
     text-align: center;
     vertical-align: middle;
     border: 1px solid #dee2e6;
@@ -31,7 +31,7 @@
   }
   .badge-category {
     display: inline-block;
-    padding: 0.25em 0.5em;
+    padding: 0.2em 0.4em;
     font-size: 0.75rem;
     font-weight: 600;
     border-radius: 0.25rem;
@@ -44,43 +44,59 @@
   .badge-C { background-color: #17a2b8; }
   .badge-D { background-color: #ffc107; color: #212529; }
   .badge-OTHER { background-color: #6c757d; }
+
   .report-controls {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 0.5rem;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.25rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
   }
+
   .filter-form {
     display: flex;
-    gap: 0.5rem;
-    align-items: flex-end;
     flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: center;
   }
+
+  .filter-form select,
+  .filter-form button,
+  .export-buttons a.btn {
+    height: 28px;
+    padding: 0 6px;
+    font-size: 0.75rem;
+  }
+
   .lineup-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
   }
+
   .team-table {
     flex: 1 1 calc(50% - 0.5rem);
     min-width: 300px;
   }
+
   .team-table thead tr th {
     color: #fff;
     font-weight: 600;
     background-color: inherit;
   }
+
   .thead-A { background-color: #dc3545; }
   .thead-B { background-color: #28a745; }
   .thead-C { background-color: #17a2b8; }
   .thead-D { background-color: #ffc107; color: #212529; }
   .thead-OTHER { background-color: #6c757d; }
+
+  .team-page { width: 100%; }
 </style>
 
-<!-- CONTENUTO -->
 <div class="report-container">
+  <!-- TITOLO -->
   <h5 class="fw-bold mb-3">
     📊 Report Amministrativi
     {% if report_type == 'lineup' and race_date %}
@@ -88,57 +104,59 @@
     {% endif %}
   </h5>
 
-  <!-- FILTRI -->
-  <div class="report-controls">
-    <form method="get" class="filter-form">
-      <div>
-        <label for="report_type" class="form-label mb-0 small text-muted">Report</label>
-        <select name="report_type" id="report_type" class="form-select form-select-sm" onchange="this.form.submit()">
-          <option value="riders_compact" {% if report_type == 'riders_compact' %}selected{% endif %}>Riders Compatto</option>
-          <option value="teams" {% if report_type == 'teams' %}selected{% endif %}>Teams</option>
-          <option value="lineup" {% if report_type == 'lineup' %}selected{% endif %}>Lineup</option>
-          <option value="team_composition" {% if report_type == 'team_composition' %}selected{% endif %}>Composizione Team</option>
-        </select>
-      </div>
-
-      {% if report_type in ['riders_compact', 'lineup', 'team_composition'] %}
-      <div>
-        <label for="category" class="form-label mb-0 small text-muted">Categoria</label>
-        <select name="category" id="category" class="form-select form-select-sm">
-          <option value="">Tutte</option>
-          {% for cat in categories %}
-            <option value="{{ cat }}" {% if cat == category_filter %}selected{% endif %}>{{ cat }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      {% endif %}
-
-      {% if report_type == 'team_composition' %}
-      <div>
-        <label for="team" class="form-label mb-0 small text-muted">Team</label>
-        <select name="team" id="team" class="form-select form-select-sm">
-          <option value="">Tutti</option>
-          {% for t in teams %}
-            <option value="{{ t }}" {% if t == team_filter %}selected{% endif %}>{{ t }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      {% endif %}
-
-      <div>
-        <button class="btn btn-primary btn-sm">Filtra</button>
-      </div>
-    </form>
-
-    <!-- ESPORTAZIONE -->
-    <div class="export-buttons">
-      <a href="{{ url_for('admin_reports.export_report', report_type=report_type, category=category_filter, team=team_filter, fmt='csv') }}" class="btn btn-success btn-sm">CSV</a>
-      <a href="{{ url_for('admin_reports.export_report', report_type=report_type, category=category_filter, team=team_filter, fmt='xlsx') }}" class="btn btn-primary btn-sm">Excel</a>
-      <a href="{{ url_for('admin_reports.export_report', report_type=report_type, category=category_filter, team=team_filter, fmt='pdf') }}" class="btn btn-danger btn-sm">PDF</a>
+  <!-- FILTRI + ESPORTAZIONE -->
+<div class="report-controls d-flex flex-wrap align-items-end gap-2 mb-3">
+  <form method="get" class="d-flex flex-wrap align-items-end gap-2 mb-0">
+    <div class="d-flex flex-column mb-0">
+      <label for="report_type" class="form-label mb-0 small text-muted">Report</label>
+      <select name="report_type" id="report_type" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="riders_compact" {% if report_type == 'riders_compact' %}selected{% endif %}>Riders Compatto</option>
+        <option value="teams" {% if report_type == 'teams' %}selected{% endif %}>Teams</option>
+        <option value="lineup" {% if report_type == 'lineup' %}selected{% endif %}>Lineup</option>
+        <option value="team_composition" {% if report_type == 'team_composition' %}selected{% endif %}>Composizione Team</option>
+      </select>
     </div>
-  </div>
 
-  <!-- VISUALIZZAZIONE -->
+    {% if report_type in ['riders_compact', 'lineup', 'team_composition'] %}
+    <div class="d-flex flex-column mb-0">
+      <label for="category" class="form-label mb-0 small text-muted">Categoria</label>
+      <select name="category" id="category" class="form-select form-select-sm">
+        <option value="">Tutte</option>
+        {% for cat in categories %}
+          <option value="{{ cat }}" {% if cat == category_filter %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    {% if report_type == 'team_composition' %}
+    <div class="d-flex flex-column mb-0">
+      <label for="team" class="form-label mb-0 small text-muted">Team</label>
+      <select name="team" id="team" class="form-select form-select-sm">
+        <option value="">Tutti</option>
+        {% for t in teams %}
+          <option value="{{ t }}" {% if t == team_filter %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <div class="d-flex flex-column mb-0">
+      <label class="form-label mb-0">&nbsp;</label>
+      <button type="submit" class="btn btn-primary btn-sm">Filtra</button>
+    </div>
+  </form>
+
+  <!-- Pulsanti esportazione -->
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('admin_reports.export_report', report_type=report_type, category=category_filter, team=team_filter, fmt='csv') }}" class="btn btn-success btn-sm">CSV</a>
+    <a href="{{ url_for('admin_reports.export_report', report_type=report_type, category=category_filter, team=team_filter, fmt='xlsx') }}" class="btn btn-primary btn-sm">Excel</a>
+    <a href="{{ url_for('admin_reports.export_report', report_type=report_type, category=category_filter, team=team_filter, fmt='pdf') }}" class="btn btn-danger btn-sm">PDF</a>
+  </div>
+</div>
+
+
+  <!-- CONTENUTO REPORT -->
   {% if report_type == 'lineup' %}
     <div class="lineup-grid">
       {% for team, riders in lineup_per_team.items() %}
@@ -173,39 +191,78 @@
     </div>
 
   {% elif report_type == 'team_composition' %}
-    <div class="lineup-grid">
-      {% for team, riders in lineup_per_team.items() %}
-        {% set rider_list = riders|list %}
-        {% set team_category = rider_list[0].category|default('OTHER') if rider_list|length > 0 else 'OTHER' %}
-        {% set header_class = "thead-" + team_category %}
-        <div class="team-table">
-          <h6 class="fw-bold">{{ team }}</h6>
-          <table class="table table-sm report-table">
-            <thead>
-              <tr class="{{ header_class }}">
-                <th>Rider</th>
-                <th>Categoria</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for i in range(12) %}
-                <tr>
-                  {% if rider_list[i] is defined %}
-                    <td>{{ rider_list[i].rider_name }}</td>
-                    <td><span class="badge-category badge-{{ rider_list[i].category|default('OTHER') }}">{{ rider_list[i].category|default('') }}</span></td>
-                  {% else %}
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                  {% endif %}
-                </tr>
+    <div class="lineup-grid-container">
+      <div id="team-pages">
+        {% set team_keys = lineup_per_team.keys()|list %}
+        {% for i in range(0, team_keys|length, 2) %}
+          <div class="team-page" style="{% if i>0 %}display:none{% endif %}">
+            <div class="lineup-grid">
+              {% for j in [0,1] %}
+                {% set idx = i+j %}
+                {% if idx < team_keys|length %}
+                  {% set team = team_keys[idx] %}
+                  {% set riders = lineup_per_team[team] %}
+                  {% set team_category = team_categories[team]|default('OTHER') %}
+                  {% set header_class = "thead-" + team_category %}
+                  <div class="team-table">
+                    <h6 class="fw-bold d-flex justify-content-between align-items-center">
+                      <span>{{ team }}</span>
+                      {% if riders[0].captain %}
+                        <small class="text-muted">👑 Capitano: {{ riders[0].captain }}</small>
+                      {% endif %}
+                    </h6>
+                    <table class="table table-sm report-table">
+                      <thead>
+                        <tr class="{{ header_class }}">
+                          <th>Rider</th>
+                          <th>Categoria</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for k in range(12) %}
+                          <tr>
+                            {% if riders[k] is defined %}
+                              <td>{{ riders[k].rider_name }}</td>
+                              <td><span class="badge-category badge-{{ riders[k].category|default('OTHER') }}">{{ riders[k].category|default('') }}</span></td>
+                            {% else %}
+                              <td>&nbsp;</td>
+                              <td>&nbsp;</td>
+                            {% endif %}
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                {% endif %}
               {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="text-center mb-3">
+        <button id="prevPage" class="btn btn-sm btn-outline-primary">⬅️ Precedente</button>
+        <button id="nextPage" class="btn btn-sm btn-outline-primary">Avanti ➡️</button>
+      </div>
     </div>
 
-    {% else %}
+    <script>
+      let currentPage = 0;
+      const pages = document.querySelectorAll('.team-page');
+      document.getElementById('prevPage').addEventListener('click', () => {
+        pages[currentPage].style.display='none';
+        currentPage=(currentPage-1+pages.length)%pages.length;
+       
+        pages[currentPage].style.display='block';
+      });
+      document.getElementById('nextPage').addEventListener('click', () => {
+        pages[currentPage].style.display='none';
+        currentPage=(currentPage+1)%pages.length;
+        pages[currentPage].style.display='block';
+      });
+    </script>
+
+  {% else %}
     <table class="table table-sm report-table">
       <thead>
         <tr>
@@ -233,4 +290,3 @@
 </div>
 
 {% endblock %}
-           

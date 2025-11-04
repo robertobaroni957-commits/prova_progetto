@@ -18,22 +18,24 @@ def manage_teams():
         name = request.form.get("name")
         category = request.form.get("category")
         division = request.form.get("division")
+        division_number = request.form.get("division_number")
+        league_id = request.form.get("league_id") or None
         captain_id = request.form.get("captain_id") or None
 
         if action == "create":
             cur.execute("""
-                INSERT INTO teams (name, category, division, captain_zwift_id)
-                VALUES (?, ?, ?, ?)
-            """, (name, category, division, captain_id))
+                INSERT INTO teams (name, category, division, division_number, league_id, captain_zwift_id)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (name, category, division, division_number, league_id, captain_id))
             conn.commit()
             flash("✅ Team creato correttamente", "success")
 
         elif action == "update":
             cur.execute("""
                 UPDATE teams
-                SET name = ?, category = ?, division = ?, captain_zwift_id = ?
+                SET name = ?, category = ?, division = ?, division_number = ?, league_id = ?, captain_zwift_id = ?
                 WHERE id = ?
-            """, (name, category, division, captain_id, team_id))
+            """, (name, category, division, division_number, league_id, captain_id, team_id))
             conn.commit()
             flash("💾 Modifiche salvate", "success")
 
@@ -42,26 +44,31 @@ def manage_teams():
             conn.commit()
             flash("🗑️ Team eliminato", "warning")
 
+        conn.close()
         return redirect(url_for("admin_teams.manage_teams"))
 
+    # Recupera squadre, leghe e capitani
     teams = cur.execute("""
-        SELECT t.*, r.name AS captain_name
+        SELECT t.*, r.name AS captain_name, l.name AS league_name
         FROM teams t
         LEFT JOIN riders r ON t.captain_zwift_id = r.zwift_power_id
+        LEFT JOIN leagues l ON t.league_id = l.id
         ORDER BY t.name
     """).fetchall()
 
-    riders = cur.execute("""
-        SELECT r.zwift_power_id, r.name
-        FROM riders r
-        JOIN captains c ON r.zwift_power_id = c.zwift_power_id
-        WHERE r.active = 1
-        ORDER BY r.name
+    captains = cur.execute("""
+        SELECT zwift_power_id, name
+        FROM riders
+        WHERE active = 1 AND is_captain = 1
+        ORDER BY name
+    """).fetchall()
+
+    leagues = cur.execute("""
+        SELECT id, name, type, region FROM leagues ORDER BY type, region, name
     """).fetchall()
 
     conn.close()
-    return render_template("admin/manage_teams.html", teams=teams, riders=riders)
-
+    return render_template("admin/manage_teams.html", teams=teams, captains=captains, leagues=leagues)
 
 @admin_teams_bp.route("/members/<int:team_id>", methods=["GET", "POST"])
 @require_admin
@@ -105,14 +112,14 @@ def manage_team_members(team_id):
                         if team_count >= 2:
                             flash("⚠️ Rider già assegnato a 2 team", "warning")
                         else:
+                            # Inserisce (o aggiorna) l’associazione nella tabella rider_teams
                             cur.execute("""
-                                INSERT OR IGNORE INTO rider_teams (zwift_power_id, team_id)
+                                INSERT OR REPLACE INTO rider_teams (zwift_power_id, team_id)
                                 VALUES (?, ?)
                             """, (zwift_power_id, team_id))
-                            cur.execute("""
-                                UPDATE riders SET team_id = ? WHERE zwift_power_id = ?
-                            """, (team_id, zwift_power_id))
-                            flash("✅ Rider aggiunto e team_id aggiornato", "success")
+
+                        flash("✅ Rider aggiunto al team", "success")
+
                     else:
                         flash("⚠️ Rider di categoria superiore: non può essere assegnato", "warning")
 

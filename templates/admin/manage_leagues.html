@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h4 class="mb-3">⚙️ Gestione Leghe ZRL</h4>
+
+  <!-- Form per creare nuova lega -->
+  <form method="post" class="mb-4 border rounded p-3 bg-light">
+    <input type="hidden" name="action" value="create">
+    <div class="row g-2">
+      <div class="col-md-4">
+        <input class="form-control" name="name" placeholder="Nome Lega" required>
+      </div>
+      <div class="col-md-3">
+        <input class="form-control" name="type" placeholder="Tipo (Open, Women...)" required>
+      </div>
+      <div class="col-md-3">
+        <input class="form-control" name="region" placeholder="Regione (Shamrock, EMEA...)" required>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100">➕ Aggiungi</button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Tabella leghe -->
+  <table class="table table-sm table-striped align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>Nome</th>
+        <th>Tipo</th>
+        <th>Regione</th>
+        <th style="width: 120px;">Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in leagues %}
+      <tr>
+        <form method="post">
+          <input type="hidden" name="league_id" value="{{ l.id }}">
+          <td><input class="form-control form-control-sm" name="name" value="{{ l.name }}"></td>
+          <td><input class="form-control form-control-sm" name="type" value="{{ l.type }}"></td>
+          <td><input class="form-control form-control-sm" name="region" value="{{ l.region }}"></td>
+          <td>
+            <div class="btn-group">
+              <button class="btn btn-success btn-sm" name="action" value="update" title="Salva">💾</button>
+              <button class="btn btn-danger btn-sm" name="action" value="delete" title="Elimina">🗑️</button>
+            </div>
+          </td>
+        </form>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if not leagues %}
+  <p class="text-muted">Nessuna lega presente. Aggiungine una sopra ⬆️</p>
+  {% endif %}
+</div>
+{% endblock %}
