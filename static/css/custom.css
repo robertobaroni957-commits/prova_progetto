@@ -24,13 +24,7 @@ a:hover {
   border: 2px solid red;
 }
 
-.sidebar {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-  transition: all 0.3s ease-in-out;
-}
+
 
 .sidebar h2 {
   font-size: 1.3rem;
