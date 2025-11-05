@@ -20,9 +20,15 @@ admin_reports_bp = Blueprint("admin_reports", __name__, url_prefix="/admin/repor
 
 @admin_reports_bp.route("/")
 def index():
-    report_type = request.args.get("report_type", "riders_compact")
+    report_type = (request.args.get("report_type") or "riders_compact").strip()
     category_filter = (request.args.get("category") or "").strip().upper()
     team_filter = (request.args.get("team") or "").strip()
+
+    # Valid report types
+    valid_reports = ["riders_compact", "riders", "teams", "lineup", "team_composition"]
+    if report_type not in valid_reports:
+        flash("Tipo di report non valido", "danger")
+        report_type = "riders_compact"
 
     conn = get_db()
     conn.row_factory = sqlite3.Row
@@ -69,6 +75,7 @@ def index():
         for col in ["zwift_power_id", "name", "category", "teams"]:
             df[col] = df[col].fillna("").astype(str).str.strip()
 
+        # Split team1 e team2
         split_teams = df["teams"].str.split(",", n=1, expand=True)
         df["team1"] = split_teams[0].fillna("").str.strip()
         df["team2"] = split_teams[1].fillna("").str.strip() if 1 in split_teams.columns else ""
@@ -85,19 +92,14 @@ def index():
             SELECT 
                 t.name AS team,
                 t.category,
-            COUNT(r.zwift_power_id) AS n_riders,
-            COALESCE(r2.name, '') AS captain
+                COUNT(r.zwift_power_id) AS n_riders,
+                COALESCE(r2.name, '') AS captain
             FROM teams t
-            LEFT JOIN rider_teams rt 
-                   ON rt.team_id = t.id
-            LEFT JOIN riders r 
-                   ON r.zwift_power_id = rt.zwift_power_id AND r.active = 1
-            LEFT JOIN riders r2 
-                   ON r2.zwift_power_id = t.captain_zwift_id
-                   -- r2.active = 1   -- Se vuoi mostrare anche capitani inattivi, commenta questa riga
+            LEFT JOIN rider_teams rt ON rt.team_id = t.id
+            LEFT JOIN riders r ON r.zwift_power_id = rt.zwift_power_id AND r.active = 1
+            LEFT JOIN riders r2 ON r2.zwift_power_id = t.captain_zwift_id
             GROUP BY t.id, t.name, t.category, r2.name
             ORDER BY t.category ASC, t.name ASC
-
         """
         rows = [dict(r) for r in cursor.execute(query).fetchall()]
         columns = ["team", "category", "n_riders", "captain"]
@@ -107,47 +109,64 @@ def index():
     # ---------------------
     elif report_type == "lineup":
         query = """
-            SELECT t.name AS team, r.name AS rider, TRIM(UPPER(r.category)) AS category, rl.race_date
+            SELECT 
+                t.name AS team,
+                r.name AS rider_name,
+                TRIM(UPPER(r.category)) AS category,
+                rl.race_date,
+                COALESCE(rc.name, '') AS captain
             FROM race_lineup rl
-            LEFT JOIN riders r ON r.zwift_power_id = rl.zwift_power_id AND r.active = 1
-            LEFT JOIN teams t ON t.id = rl.team_id
+            JOIN riders r ON r.zwift_power_id = rl.zwift_power_id
+            JOIN teams t ON t.id = rl.team_id
+            LEFT JOIN riders rc ON rc.zwift_power_id = t.captain_zwift_id
             WHERE 1=1
         """
         params = []
         if category_filter:
             query += " AND TRIM(UPPER(r.category)) = ?"
-            params.append(category_filter)
+            params.append(category_filter.upper())
 
         query += " ORDER BY t.name, r.name"
         rows_raw = cursor.execute(query, params).fetchall()
 
-        rows = []
-        for r in rows_raw:
-            rows.append({
-                "team": r["team"] or "Senza Team",
-                "rider": r["rider"] or "—",
-                "category": r["category"] or "OTHER",
-                "race_date": r["race_date"] or ""
-            })
-
-        # Raggruppa per team
+        # Raggruppa riders per team e salva il capitano
         lineup_per_team = {}
-        for r in rows:
-            team = r["team"]
-            lineup_per_team.setdefault(team, []).append({
-                "rider": r["rider"],
-                "category": r["category"],
-                "race_date": r["race_date"]
+        team_categories = {}
+        category_order = {"A": 1, "B": 2, "C": 3, "D": 4, "OTHER": 5}
+        team_order = []
+
+        for r in rows_raw:
+            team = r["team"] or "Senza Team"
+            team_cat = r["category"] or "OTHER"
+            if team_cat.upper() == "A+":
+                team_cat = "A"
+            if team not in lineup_per_team:
+                lineup_per_team[team] = []
+                team_categories[team] = team_cat.upper()
+                team_order.append((category_order.get(team_cat.upper(), 99), team))
+
+            rider_cat = r["category"] or "OTHER"
+            if rider_cat.upper() == "A+":
+                rider_cat = "A"
+
+            lineup_per_team[team].append({
+                "rider_name": r["rider_name"],
+                "category": rider_cat.upper(),
+                "race_date": r["race_date"],
+                "captain": r["captain"]
             })
 
-        # Format della data della gara
-        if rows:
-            try:
-                race_date = datetime.datetime.strptime(rows[0]["race_date"], "%Y-%m-%d").strftime("%d %B %Y")
-            except Exception:
-                race_date = rows[0]["race_date"]
+        # Ordina i team
+        team_order.sort()
+        lineup_per_team = {team: lineup_per_team[team] for _, team in team_order}
 
-        columns = ["team", "rider", "category", "race_date"]
+        # Formatta data
+        race_date = ""
+        if rows_raw:
+            try:
+                race_date = datetime.datetime.strptime(rows_raw[0]["race_date"], "%Y-%m-%d").strftime("%d %B %Y")
+            except Exception:
+                race_date = rows_raw[0]["race_date"]
 
     # ---------------------
     # Report Team Composition
@@ -159,14 +178,11 @@ def index():
                 TRIM(UPPER(t.category)) AS team_category,
                 r.name AS rider_name,
                 TRIM(UPPER(r.category)) AS rider_category,
-                COALESCE(c.name, '') AS captain
+                COALESCE(rc.name, '') AS captain
             FROM teams t
             LEFT JOIN rider_teams rt ON rt.team_id = t.id
-            LEFT JOIN riders r 
-                ON r.zwift_power_id = rt.zwift_power_id 
-                AND r.active = 1
-            LEFT JOIN captains c 
-                ON c.team_id = t.id AND c.active = 1
+            LEFT JOIN riders r ON r.zwift_power_id = rt.zwift_power_id AND r.active = 1
+            LEFT JOIN riders rc ON rc.zwift_power_id = t.captain_zwift_id
             WHERE 1=1
         """
         params = []
@@ -174,7 +190,6 @@ def index():
             query += " AND t.name = ?"
             params.append(team_filter)
         if category_filter:
-            # filtro sui rider, ma team_category rimane quella della tabella teams
             if category_filter.upper() == "A":
                 query += " AND TRIM(UPPER(r.category)) IN ('A', 'A+')"
             else:
@@ -182,16 +197,15 @@ def index():
                 params.append(category_filter.upper())
 
         query += " ORDER BY t.name, r.name"
-
         df = pd.read_sql_query(query, conn, params=params)
         rows = df.to_dict(orient="records")
 
-        # Normalizza rider_category: A+ -> A
+        # Normalizza rider_category
         for r in rows:
             if r.get("rider_category") == "A+":
                 r["rider_category"] = "A"
 
-        # Raggruppa i rider per team e salva la categoria del team
+        # Raggruppa i rider per team
         lineup_per_team = {}
         team_categories = {}
         category_order = {"A": 1, "B": 2, "C": 3, "D": 4, "OTHER": 5}
@@ -200,7 +214,6 @@ def index():
         for r in rows:
             team = r.get("team_name") or "Senza Team"
             team_cat = r.get("team_category") or "OTHER"
-            # Unifica A+
             if team_cat.upper() == "A+":
                 team_cat = "A"
             if team not in lineup_per_team:
@@ -218,19 +231,11 @@ def index():
                 "captain": r.get("captain") or ""
             })
 
-        # Ordina i team in base alla categoria
+        # Ordina team
         team_order.sort()
-        sorted_lineup_per_team = {team: lineup_per_team[team] for _, team in team_order}
-        lineup_per_team = sorted_lineup_per_team
-
+        lineup_per_team = {team: lineup_per_team[team] for _, team in team_order}
 
         columns = ["team_name", "rider_name", "category", "captain"]
-
-
-
-
-    else:
-        flash("Tipo di report non valido", "danger")
 
     conn.close()
 
@@ -247,9 +252,6 @@ def index():
         team_categories=team_categories if report_type in ["lineup", "team_composition"] else None,
         race_date=race_date
     )
-
-
-
 
 
 @admin_reports_bp.route("/export")
@@ -623,20 +625,22 @@ def export_report():
                     group = df[df["team"] == team]
 
                     # Tabella con intestazione + 6 righe
-                    data = [["Rider", "Categoria", "Data Gara"]]
+                    data = [["Rider", "Categoria", "Data Gara", "Capitano"]]
                     for _, r in group.head(6).iterrows():
                         data.append([
                             r.get("rider", "—"),
                             r.get("category", "—"),
                             r.get("race_date", "—"),
+                            r.get("captain", "—")
                         ])
+
 
                     # Riempi con righe vuote fino a 6
                     while len(data) < 7:
                         data.append(["", "", ""])
 
                     # Tabella compatta per stare nel layout 2×2
-                    table = Table(data, colWidths=[120, 45, 70])
+                    table = Table(data, colWidths=[100, 40, 50, 60])
                     table.setStyle(TableStyle([
                         ("BACKGROUND", (0, 0), (-1, 0), header_color),
                         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
@@ -676,7 +680,8 @@ def export_report():
 
 
 
-        # Costruzione PDF
+# Costruzione PDF
+
         doc.build(elements, onFirstPage=footer, onLaterPages=footer)
         buffer.seek(0)
         return send_file(
@@ -685,6 +690,149 @@ def export_report():
             download_name=f"{report_type}.pdf",
             mimetype="application/pdf"
         )
+    
+# ------------------------
+# EXPORT HTML
+# ------------------------
+    elif fmt == "html":
+        from flask import render_template_string
+
+        report_title = f"Report: {report_type}"
+
+        # --------------------------
+        # Report riders / teams semplice
+        # --------------------------
+        if report_type in ["riders", "riders_compact", "teams"]:
+            html_table = df.to_html(
+                index=False,
+                classes="table table-striped table-bordered",
+                border=0,
+                justify="left",
+                escape=False
+            )
+            html_full = f"""
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>{report_title}</title>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+            </head>
+            <body>
+                <div class="container mt-4">
+                    <h2>{report_title}</h2>
+                    {html_table}
+                </div>
+            </body>
+            </html>
+            """
+
+        # --------------------------
+        # Report lineup / team_composition (layout 2x2)
+        # --------------------------
+        elif report_type in ["lineup", "team_composition"]:
+            df["category"] = df.get("category", "OTHER").fillna("OTHER").str.upper()
+            category_order = {"A": 1, "B": 2, "C": 3, "D": 4, "OTHER": 5}
+            df["category_order"] = df["category"].map(lambda x: category_order.get(x, 99))
+
+            team_col = "team_name" if "team_name" in df.columns else "team"
+            rider_col = "rider_name" if "rider_name" in df.columns else "rider"
+            df = df.sort_values(by=["category_order", team_col, rider_col])
+
+            ordered_teams = df[[team_col, "category", "category_order"]].drop_duplicates(subset=[team_col])
+            team_blocks = []
+
+            for _, row in ordered_teams.iterrows():
+                team = row[team_col]
+                cat = row["category"]
+                group = df[df[team_col] == team]
+
+                # Numero di righe dinamico
+                max_rows = 12 if report_type == "team_composition" else 6
+
+                # Capitano (vale anche per lineup)
+                captain = ""
+                if "captain" in group.columns:
+                    captain_value = group["captain"].dropna().unique()
+                    if len(captain_value) > 0 and str(captain_value[0]).strip():
+                        captain = f" 👑 Capitano: {captain_value[0]}"
+
+                # Titolo HTML
+                title_html = f"<h5>{team} (Cat. {cat}){captain}</h5>"
+
+                # Tabella HTML
+                table_data = [["Rider", "Categoria", "Data Gara"]]
+                for _, r in group.head(max_rows).iterrows():
+                    table_data.append([
+                        r.get(rider_col, "—"),
+                        r.get("category", "—"),
+                        r.get("race_date", "—") if "race_date" in r else "—"
+                    ])
+
+                while len(table_data) < (max_rows + 1):
+                    table_data.append(["", "", ""])
+
+                html_table = "<table class='table table-sm table-bordered'><thead><tr>"
+                for col in table_data[0]:
+                    html_table += f"<th>{col}</th>"
+                html_table += "</tr></thead><tbody>"
+                for row_data in table_data[1:]:
+                    html_table += "<tr>" + "".join(f"<td>{c}</td>" for c in row_data) + "</tr>"
+                html_table += "</tbody></table>"
+
+                team_blocks.append({
+                    "team": team,
+                    "category": cat,
+                    "html_table": html_table,
+                    "title_html": title_html
+                })
+
+
+            # Layout 2x2 per pagina
+            html_blocks = ""
+            for i in range(0, len(team_blocks), 4):
+                page_teams = team_blocks[i:i+4]
+                while len(page_teams) < 4:
+                    page_teams.append({"team": "", "category": "", "html_table": ""})
+                html_blocks += "<div class='row mb-3'>"
+                for j in range(2):
+                    html_blocks += "<div class='col-md-6'>"
+                    for k in [j, j+2]:
+                        tb = page_teams[k]
+                        if tb["team"]:
+                            html_blocks += tb["title_html"]
+                            html_blocks += tb["html_table"]
+                            html_blocks += "<hr>"
+                    html_blocks += "</div>"
+                html_blocks += "</div>"
+
+            html_full = f"""
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>{report_title}</title>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+            </head>
+            <body>
+                <div class="container mt-4">
+                    <h2>{report_title}</h2>
+                    {html_blocks}
+                </div>
+            </body>
+            </html>
+            """
+
+        # --------------------------
+        # Invio come file scaricabile
+        # --------------------------
+        buffer = io.BytesIO(html_full.encode("utf-8"))
+        buffer.seek(0)
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=f"{report_type}.html",
+            mimetype="text/html"
+        )
+
 
 
     # ✅ Fuori dal blocco 'elif fmt == "pdf":'
