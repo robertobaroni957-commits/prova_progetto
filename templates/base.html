@@ -44,20 +44,9 @@
 {% set role = session.get('user_role') %}
 
 {% if session.get('user_id') and role %}
-  <!-- Sidebar desktop -->
   {% include 'partials/admin_sidebar.html' %}
-
-  <!-- Sidebar mobile -->
-  <div class="offcanvas offcanvas-start bg-white" tabindex="-1" id="mobileSidebar">
-    <div class="offcanvas-header border-bottom">
-      <h5 class="offcanvas-title fw-bold text-primary">🏁 ZRL Manager</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body">
-      {% include 'partials/admin_sidebar_mobile.html' %}
-    </div>
-  </div>
 {% endif %}
+
 
 <!-- Contenuto principale -->
 <div class="main-content p-4">
