@@ -12,9 +12,9 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
-    /* Stile sidebar mobile */
+    /* Stile mobile sidebar */
     .offcanvas-start {
-      background: #f8f9fa;
+      background: #f8f9fa; /* sfondo chiaro elegante */
       width: 250px;
     }
 
@@ -49,16 +49,24 @@
     .offcanvas-body .badge {
       font-size: 0.7rem;
     }
+
+    /* Sovrascrive il CSS sidebar fisso solo su mobile */
+    @media (max-width: 768px) {
+      .offcanvas-start.sidebar {
+        position: static !important;
+        height: auto !important;
+      }
+    }
   </style>
 </head>
 <body>
 
-<!-- Bottone hamburger mobile (solo su mobile) -->
+<!-- Bottone hamburger mobile -->
 <button class="btn btn-primary d-md-none mb-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-controls="mobileSidebar">
   <i class="bi bi-list fs-4"></i> Menu
 </button>
 
-<!-- Sidebar Offcanvas Mobile -->
+<!-- Sidebar Offcanvas Mobile (non usare la classe .sidebar per evitare conflitti) -->
 <div class="offcanvas offcanvas-start d-md-none" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
   <div class="offcanvas-header">
     <h5 class="offcanvas-title" id="mobileSidebarLabel">🏁 ZRL Manager</h5>
